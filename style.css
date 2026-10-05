@@ -1,1 +1,28 @@
-html,body,#game{margin:0;width:100%;height:100%;overflow:hidden;background:#070a10}canvas{display:block}#hud{position:fixed;top:0;left:0;right:0;padding:14px;color:white;display:flex;justify-content:space-between;z-index:5;font:700 16px Arial}#message{position:fixed;inset:0;display:grid;place-items:center;z-index:6;color:white;pointer-events:none}#countdown{font:bold italic 120px Arial;text-shadow:0 5px 25px #000}#restart{position:fixed;right:14px;top:60px;z-index:8;padding:10px 15px;border-radius:20px}#touch{position:fixed;left:0;right:0;bottom:15px;display:flex;justify-content:space-between;padding:0 15px;z-index:8}#touch button{width:70px;height:60px;border-radius:18px;background:#111b;color:white;border:1px solid #fff4;font-weight:900}
+:root{font-family:Inter,Arial,sans-serif;color:#fff;background:#070a0e}
+*{box-sizing:border-box}
+html,body,#game{margin:0;width:100%;height:100%;overflow:hidden;background:#070a0e}
+body{touch-action:none}
+canvas{display:block}
+#hud{position:fixed;top:0;left:0;right:0;padding:14px 18px;z-index:5;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:start;pointer-events:none;text-shadow:0 2px 8px #000}
+.brand{font-weight:950;letter-spacing:2px;font-size:17px}.brand small{font-size:10px;opacity:.65}
+.telemetry{display:flex;justify-content:center;gap:18px;font-weight:900;font-size:14px;flex-wrap:wrap}
+.telemetry span:first-child{font-size:22px}
+.systems{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px;font-weight:900}
+#aero{letter-spacing:1px}
+#message{position:fixed;inset:0;display:grid;place-items:center;z-index:6;color:white;pointer-events:none}
+#countdown{font:bold italic 120px Arial;text-shadow:0 5px 30px #000}
+#status{position:fixed;left:50%;top:78px;transform:translateX(-50%);z-index:6;font-size:11px;font-weight:900;letter-spacing:2px;opacity:.75}
+#buttons{position:fixed;right:16px;top:66px;display:flex;gap:8px;z-index:9}
+button{font:900 12px Arial;letter-spacing:.5px;color:#fff;background:#111923dd;border:1px solid #ffffff30;border-radius:14px;padding:10px 13px;box-shadow:0 4px 16px #0005}
+button:active{transform:scale(.96)}
+#touch{position:fixed;left:0;right:0;bottom:15px;display:flex;justify-content:space-between;padding:0 18px;z-index:8;pointer-events:none}
+#touch button{pointer-events:auto;width:76px;height:62px;border-radius:20px;background:#0c1420dd;border:1px solid #fff4;font-weight:950}
+.steerGroup,.pedalGroup{display:flex;gap:10px}
+.pedalGroup button:last-child{width:100px}
+@media(max-width:700px){
+ #hud{padding:9px 10px;grid-template-columns:1fr auto;gap:3px}
+ .telemetry{grid-column:1/-1;order:3;gap:9px;font-size:10px}.telemetry span:first-child{font-size:17px}
+ .brand{font-size:13px}.systems{font-size:10px}
+ #status{top:65px;font-size:9px}
+ #buttons{top:42px;right:8px}.buttons button{padding:8px}
+}
