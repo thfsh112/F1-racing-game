@@ -28,8 +28,10 @@ public class F12026MobileHUD : MonoBehaviour
             aeroText.text = car.activeAeroXMode ? "X · LOW DRAG" : "Z · DOWNFORCE";
 
         if (batterySlider != null && car.powerUnit != null)
-            batterySlider.value =
-                Mathf.Clamp01(car.powerUnit.BatteryEnergyMJ / 
-                               Mathf.Max(0.01f, car.powerUnit.batteryCapacityMJ));
+        {
+            batterySlider.value = Mathf.Clamp01(
+                car.powerUnit.batteryEnergyMJ /
+                Mathf.Max(0.01f, car.powerUnit.batteryCapacityMJ));
+        }
     }
 }
