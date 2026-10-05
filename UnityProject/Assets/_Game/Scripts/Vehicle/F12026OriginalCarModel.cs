@@ -79,7 +79,7 @@ public class F12026OriginalCarModel : MonoBehaviour
             new Vector3(0f, 0.67f, -0.25f),
             new Vector3(0.32f, 0.20f, 0.38f), darkMaterial);
 
-        // Sidepods with the deep black/red inlet treatment visible in the references.
+        // Sidepods with a neutral carbon inlet treatment; livery is intentionally kept separate from the base model.
         BuildSidepod(-1f);
         BuildSidepod(1f);
 
@@ -232,7 +232,7 @@ public class F12026OriginalCarModel : MonoBehaviour
             else frontRightWheel = wheel.transform;
         }
 
-        // Thin red tyre sidewall accent.
+        // Neutral tyre sidewall accent; teams/liveries can replace this material later.
         Make(prefix + "TyreBand", PrimitiveType.Cylinder,
             new Vector3(x, 0.36f, z + (side < 0f ? -0.19f : 0.19f)),
             new Vector3(0.375f, 0.012f, 0.375f), accentMaterial)
@@ -303,7 +303,7 @@ public class F12026OriginalCarModel : MonoBehaviour
     private void EnsureMaterials()
     {
         if (bodyMaterial == null)
-            bodyMaterial = CreateRuntimeMaterial("F1 Body", new Color(0.62f, 0.61f, 0.58f), 0.65f, 0.35f);
+            bodyMaterial = CreateRuntimeMaterial("F1 Body", new Color(0.72f, 0.72f, 0.70f), 0.70f, 0.42f);
 
         if (darkMaterial == null)
             darkMaterial = CreateRuntimeMaterial("Carbon Black", new Color(0.018f, 0.022f, 0.025f), 0.78f, 0.22f);
@@ -312,7 +312,7 @@ public class F12026OriginalCarModel : MonoBehaviour
             tyreMaterial = CreateRuntimeMaterial("Tyre", new Color(0.025f, 0.025f, 0.025f), 0.95f, 0.05f);
 
         if (accentMaterial == null)
-            accentMaterial = CreateRuntimeMaterial("Red Accent", new Color(0.9f, 0.035f, 0.02f), 0.45f, 0.35f);
+            accentMaterial = CreateRuntimeMaterial("Red Accent", new Color(0.18f, 0.19f, 0.20f), 0.55f, 0.30f);
 
         if (glassMaterial == null)
             glassMaterial = CreateRuntimeMaterial("Visor", new Color(0.02f, 0.035f, 0.045f), 0.20f, 0.65f);
