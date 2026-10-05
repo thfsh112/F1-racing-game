@@ -124,6 +124,23 @@ public class F12026OriginalCarModel : MonoBehaviour
             new Vector3(0f, 0.27f, -1.46f),
             new Vector3(1.28f, 0.12f, 0.55f), darkMaterial);
 
+        // Narrow central engine spine / rear body taper.
+        Make("EngineSpine", PrimitiveType.Sphere,
+            new Vector3(0f, 0.73f, -0.83f),
+            new Vector3(0.34f, 0.23f, 0.92f), bodyMaterial);
+
+        // Rear crash structure and diffuser fences.
+        Make("CrashStructure", PrimitiveType.Cube,
+            new Vector3(0f, 0.48f, -1.62f),
+            new Vector3(0.18f, 0.18f, 0.34f), darkMaterial);
+
+        Make("DiffuserFenceL", PrimitiveType.Cube,
+            new Vector3(-0.48f, 0.31f, -1.46f),
+            new Vector3(0.045f, 0.18f, 0.52f), darkMaterial);
+        Make("DiffuserFenceR", PrimitiveType.Cube,
+            new Vector3(0.48f, 0.31f, -1.46f),
+            new Vector3(0.045f, 0.18f, 0.52f), darkMaterial);
+
         // Rear wing, three visible planes + tall endplates.
         rearWing = new GameObject("RearWing").transform;
         rearWing.SetParent(transform, false);
@@ -169,23 +186,28 @@ public class F12026OriginalCarModel : MonoBehaviour
     {
         string s = side < 0f ? "L" : "R";
 
+        // Long, low sidepod volume inspired by the supplied 2026 concept proportions.
         Make("Sidepod" + s, PrimitiveType.Sphere,
-            new Vector3(0.56f * side, 0.47f, 0.18f),
-            new Vector3(0.48f, 0.30f, 1.22f), bodyMaterial);
+            new Vector3(0.57f * side, 0.48f, 0.02f),
+            new Vector3(0.56f, 0.34f, 1.48f), bodyMaterial);
 
-        // Deep side inlet / cooling mouth.
+        // Upper shoulder transitions into the engine cover instead of a boxy side.
+        Make("SidepodShoulder" + s, PrimitiveType.Sphere,
+            new Vector3(0.46f * side, 0.59f, -0.40f),
+            new Vector3(0.38f, 0.20f, 0.92f), bodyMaterial);
+
+        // Deep cooling inlet and a thin lower lip.
         Make("SideInlet" + s, PrimitiveType.Sphere,
-            new Vector3(0.73f * side, 0.53f, 0.40f),
-            new Vector3(0.23f, 0.16f, 0.56f), darkMaterial);
+            new Vector3(0.78f * side, 0.53f, 0.38f),
+            new Vector3(0.27f, 0.18f, 0.62f), darkMaterial);
 
-        Make("SideInletGlow" + s, PrimitiveType.Cube,
-            new Vector3(0.74f * side, 0.53f, 0.40f),
-            new Vector3(0.025f, 0.045f, 0.34f), accentMaterial);
+        Make("SideInletLip" + s, PrimitiveType.Cube,
+            new Vector3(0.79f * side, 0.44f, 0.38f),
+            new Vector3(0.05f, 0.055f, 0.54f), darkMaterial);
 
-        // Upper body shoulder.
-        Make("SideShoulder" + s, PrimitiveType.Cube,
-            new Vector3(0.49f * side, 0.61f, -0.34f),
-            new Vector3(0.22f, 0.12f, 0.82f), bodyMaterial);
+        Make("SidepodLowerEdge" + s, PrimitiveType.Cube,
+            new Vector3(0.67f * side, 0.29f, -0.06f),
+            new Vector3(0.13f, 0.06f, 1.35f), darkMaterial);
     }
 
     private void BuildHalo()
@@ -205,6 +227,14 @@ public class F12026OriginalCarModel : MonoBehaviour
         MakeBeam("HaloTop",
             new Vector3(-0.30f, 0.91f, 0.18f),
             new Vector3(0.30f, 0.91f, 0.18f), 0.055f, darkMaterial);
+
+        Make("CockpitRim", PrimitiveType.Cylinder,
+            new Vector3(0f, 0.66f, 0.27f),
+            new Vector3(0.31f, 0.025f, 0.52f), darkMaterial);
+
+        Make("CameraPod", PrimitiveType.Cylinder,
+            new Vector3(0f, 0.99f, 0.84f),
+            new Vector3(0.055f, 0.07f, 0.055f), darkMaterial);
     }
 
     private void BuildCorner(float side, float z, bool front)
