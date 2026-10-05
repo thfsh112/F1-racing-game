@@ -1,33 +1,39 @@
 using UnityEngine;
 
-public class F12026_AeroModel : MonoBehaviour
+namespace F12026
 {
-    public Rigidbody rb;
-    public float airDensity = 1.225f;
-    public float frontalArea = 1.5f;
-    public float downforceCoefficient = 3f;
-    public float dragCoefficient = 0.32f;
-    [Range(0.2f,1f)] public float xModeDownforce = 0.55f;
-    [Range(0.2f,1f)] public float xModeDrag = 0.55f;
-    public bool xMode;
-
-    private void Awake()
+    public class F12026_AeroModel : MonoBehaviour
     {
-        if (!rb) rb = GetComponent<Rigidbody>();
-    }
+        public float downforceCoefficient = 2.4f;
+        public float dragCoefficient = 0.95f;
+        public float frontalArea = 1.55f;
+        public float airDensity = 1.225f;
 
-    private void FixedUpdate()
-    {
-        if (!rb) return;
-        float speed = rb.linearVelocity.magnitude;
-        float dynamicPressure = 0.5f * airDensity * speed * speed * frontalArea;
-        float downforce = dynamicPressure * downforceCoefficient *
-                          (xMode ? xModeDownforce : 1f);
-        float drag = dynamicPressure * dragCoefficient *
-                     (xMode ? xModeDrag : 1f);
+        [Header("Active Aero")]
+        [Range(0f, 1f)] public float frontAero = 1f;
+        [Range(0f, 1f)] public float rearAero = 1f;
+        public bool lowDragMode;
 
-        rb.AddForce(Vector3.down * downforce);
-        if (speed > 0.1f)
-            rb.AddForce(-rb.linearVelocity.normalized * drag);
+        private Rigidbody rb;
+
+        private void Awake() => rb = GetComponent<Rigidbody>();
+
+        private void FixedUpdate()
+        {
+            if (!rb) return;
+
+            float speed = rb.linearVelocity.magnitude;
+            float q = 0.5f * airDensity * speed * speed;
+
+            float downforce = q * downforceCoefficient * Mathf.Lerp(0.75f, 1.1f, (frontAero + rearAero) * 0.5f);
+            float dragCd = lowDragMode ? dragCoefficient * 0.62f : dragCoefficient;
+            float drag = q * dragCd * frontalArea;
+
+            rb.AddForce(-transform.up * downforce);
+            if (speed > 0.01f)
+                rb.AddForce(-rb.linearVelocity.normalized * drag);
+        }
+
+        public void SetLowDrag(bool enabled) => lowDragMode = enabled;
     }
 }
