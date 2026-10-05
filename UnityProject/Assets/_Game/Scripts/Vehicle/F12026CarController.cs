@@ -197,7 +197,7 @@ public class F12026CarController : MonoBehaviour
 
         float brakeTorque =
             brakeSystem != null
-                ? brakeSystem.GetBrakeTorque(brakeInput, front)
+                ? (front ? brakeSystem.FrontTorque : brakeSystem.RearTorque)
                 : maxBrakeTorqueNm * brakeInput *
                   (front ? frontBrakeBias : 1f - frontBrakeBias);
 
