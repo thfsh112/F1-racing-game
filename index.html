@@ -9,7 +9,7 @@
 </head>
 <body>
 <div id="app">
-  <div id="game"></div>
+  <div id="game"><div id="loading"><div class="loader">F1</div><b>LOADING RACING SIMULATION</b><small>正在載入 3D 賽車引擎…</small></div></div>
 
   <div id="hud">
     <div class="topbar">
@@ -54,6 +54,7 @@
 
   <div id="portraitHint">請將手機橫向使用</div>
   <script type="module" src="./game.js"></script>
+<script>window.addEventListener("error",function(e){var x=document.getElementById("loading");if(x){x.classList.add("error");x.innerHTML="<div class=\"loader\">!</div><b>GAME LOAD ERROR</b><small>"+(e.message||"3D 引擎載入失敗")+"<br>請重新整理頁面</small>"}});window.addEventListener("unhandledrejection",function(e){var x=document.getElementById("loading");if(x){x.classList.add("error");x.innerHTML="<div class=\"loader\">!</div><b>GAME LOAD ERROR</b><small>3D 模組載入失敗<br>請重新整理頁面</small>"}});</script>
 </div>
 </body>
 </html>
