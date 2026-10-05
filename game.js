@@ -114,6 +114,54 @@ buildWheel(-1,1.18,true);buildWheel(1,1.18,true);buildWheel(-1,-1.18,false);buil
 scene.add(car);
 const activeAero=new ActiveAero(frontWing,rearWing);
 /* Race + input + simplified AI */
+
+// ===== F1 25-style unified controls / mini-map / race systems =====
+const mapCanvas=document.querySelector('#trackMapCanvas');
+const mapCtx=mapCanvas?.getContext('2d');
+const flagStateEl=document.querySelector('#flagState');
+const positionEl=document.querySelector('#position');
+const inputState={steer:0,throttle:0,brake:0};
+let raceFlag='GREEN';
+let manualGear=false;
+
+function deadzone(v,z=.08){
+  if(Math.abs(v)<z)return 0;
+  return Math.sign(v)*(Math.abs(v)-z)/(1-z);
+}
+function readGamepad(){
+  const pads=navigator.getGamepads?navigator.getGamepads():[];
+  const p=[...pads].find(x=>x&&x.connected);
+  if(!p){inputState.steer=0;inputState.throttle=0;inputState.brake=0;return;}
+  inputState.steer=deadzone(p.axes?.[0]||0);
+  inputState.throttle=THREE.MathUtils.clamp(p.buttons?.[7]?.value||0,0,1);
+  inputState.brake=THREE.MathUtils.clamp(p.buttons?.[6]?.value||0,0,1);
+  if(p.buttons?.[0]?.pressed) powerUnit.overtake=true;
+}
+addEventListener('gamepadconnected',e=>console.log('Gamepad connected:',e.gamepad.id));
+addEventListener('gamepaddisconnected',()=>console.log('Gamepad disconnected'));
+
+function drawMiniMap(){
+  if(!mapCtx)return;
+  mapCtx.clearRect(0,0,150,150);
+  mapCtx.fillStyle='rgba(0,0,0,.28)';mapCtx.fillRect(0,0,150,150);
+  const all=points;
+  let minX=Infinity,maxX=-Infinity,minZ=Infinity,maxZ=-Infinity;
+  all.forEach(p=>{minX=Math.min(minX,p[0]);maxX=Math.max(maxX,p[0]);minZ=Math.min(minZ,p[1]);maxZ=Math.max(maxZ,p[1]);});
+  const sx=116/(maxX-minX),sz=116/(maxZ-minZ),s=Math.min(sx,sz);
+  const map=p=>({x:17+(p[0]-minX)*s,y:17+(p[1]-minZ)*s});
+  mapCtx.beginPath();
+  all.forEach((p,i)=>{const q=map(p);i?mapCtx.lineTo(q.x,q.y):mapCtx.moveTo(q.x,q.y);});
+  mapCtx.closePath();mapCtx.strokeStyle='#707983';mapCtx.lineWidth=8;mapCtx.lineJoin='round';mapCtx.stroke();
+  mapCtx.strokeStyle='#161b20';mapCtx.lineWidth=4;mapCtx.stroke();
+  aiCars.forEach((a,i)=>{const q=map({x:a.position.x,z:a.position.z});mapCtx.beginPath();mapCtx.arc(q.x,q.y,3,0,Math.PI*2);mapCtx.fillStyle=i%2?'#fff':'#ffd447';mapCtx.fill();});
+  const q=map({x:car.position.x,z:car.position.z});
+  mapCtx.save();mapCtx.translate(q.x,q.y);mapCtx.rotate(car.rotation.y);mapCtx.beginPath();mapCtx.moveTo(0,-7);mapCtx.lineTo(4,5);mapCtx.lineTo(0,3);mapCtx.lineTo(-4,5);mapCtx.closePath();mapCtx.fillStyle=powerUnit.overtake?'#37e58c':'#e10600';mapCtx.fill();mapCtx.restore();
+}
+function updateRaceHUD(){
+  if(flagStateEl)flagStateEl.textContent=raceFlag;
+  if(positionEl)positionEl.textContent='P'+(1+aiCars.filter(a=>a.userData.progress>progress).length);
+}
+
 const key={left:false,right:false,throttle:false,brake:false};
 document.querySelectorAll('[data-key]').forEach(b=>{
  const k=b.dataset.key;
@@ -172,17 +220,20 @@ function animate(){
  requestAnimationFrame(animate);
  const dt=Math.min(clock.getDelta(),.04),now=performance.now();
  if(run&&!finish){
-  const throttle=key.throttle,brake=key.brake;
+  readGamepad();
+  const steerInput=Math.abs(inputState.steer)>.02?inputState.steer:(key.right?1:0)-(key.left?1:0);
+  const throttle=Math.max(key.throttle?1:0,inputState.throttle);
+  const brake=Math.max(key.brake?1:0,inputState.brake);
   const target=throttle?42:0;
   v+=(target-v*.32-(brake?58:0))*dt;
   v=Math.max(0,Math.min(82,v));
   const steer=(key.right?1:0)-(key.left?1:0);
-  offset+=steer*v*.070*dt;
+  offset+=steerInput*v*.070*dt;
   offset=Math.max(-W/2-3,Math.min(W/2+3,offset));
   if(Math.abs(offset)>W/2)v*=.985;
   const previous=progress;progress=(progress+v*dt/L)%1;
   if(previous>.8&&progress<.2){laps++;if(laps>=3){finish=true;run=false;count.textContent='FINISH'}}
-  powerUnit.update(dt,throttle,v);tireModel.update(dt,v,steer,brake,throttle);activeAero.update(dt);
+  powerUnit.update(dt,throttle,v);tireModel.update(dt,v,steerInput,brake,throttle);activeAero.update(dt);
   wheelMeshes.forEach(w=>w.rotation.y+=v*dt*2.2);
   place();aiCars.forEach(a=>placeAI(a,dt));
   speedEl.textContent=Math.round(v*3.6)+' KM/H';
@@ -206,6 +257,8 @@ function animate(){
   if(cameraMode){
     const look=car.position.clone().addScaledVector(f,3.2);look.y=1.02;camera.lookAt(look);
   }else camera.lookAt(car.position.x,car.position.y+.55,car.position.z+1);
+ updateRaceHUD();
+ drawMiniMap();
  renderer.render(scene,camera);
 }
 animate();
