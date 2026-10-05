@@ -11,7 +11,8 @@
 <div id="app">
   <div id="game"><div id="loading"><div class="loader">F1</div><b>LOADING RACING SIMULATION</b><small>正在載入 3D 賽車引擎…</small></div></div>
 
-  <div id="hud">
+  <div id="trackMap"><canvas id="trackMapCanvas" width="150" height="150"></canvas><div class="mapTitle">TRACK MAP</div></div>
+<div id="hud">
     <div class="topbar">
       <div class="brand"><b>F1</b><span>2026 RACING SIMULATION</span></div>
       <div class="raceState"><span class="dot"></span> GRAND PRIX · TEST SESSION</div>
@@ -32,7 +33,8 @@
   </div>
 
   <div id="countdown"><strong id="countdownText">3</strong><small>GET READY</small></div>
-  <div id="cameraLabel">CHASE CAMERA</div>
+  <div id="raceFlags"><span id="flagState">GREEN</span><span id="position">P1</span></div>
+<div id="cameraLabel">CHASE CAMERA</div>
 
   <div id="ersPanel">
   <div class="panelTitle">ENERGY STORE</div>
