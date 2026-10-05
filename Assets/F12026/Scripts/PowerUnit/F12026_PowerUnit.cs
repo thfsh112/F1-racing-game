@@ -1,32 +1,45 @@
 using UnityEngine;
 
-public class F12026_PowerUnit : MonoBehaviour
+namespace F12026
 {
-    public float icePowerHP = 750f;
-    public float mguKPowerHP = 450f;
-    [Range(0f,1f)] public float stateOfCharge = 1f;
-    public float deployRate = 0.12f;
-    public float regenRate = 0.08f;
-    public bool overdrive;
-
-    public float ElectricalPowerHP { get; private set; }
-
-    public float CalculatePower(float throttle)
+    public class F12026_PowerUnit : MonoBehaviour
     {
-        throttle = Mathf.Clamp01(throttle);
-        float electrical = stateOfCharge > 0f ? mguKPowerHP * throttle : 0f;
-        if (overdrive) electrical *= 1.25f;
+        [Header("ICE")]
+        public float maxIcePowerKw = 560f;
+        public float rpm = 4000f;
+        public float idleRpm = 3500f;
+        public float maxRpm = 15000f;
 
-        ElectricalPowerHP = electrical;
-        stateOfCharge = Mathf.Clamp01(
-            stateOfCharge - deployRate * throttle * Time.fixedDeltaTime);
+        [Header("MGU-K / Battery")]
+        public float maxMguKPowerKw = 120f;
+        [Range(0f, 1f)] public float stateOfCharge = 0.82f;
+        public float deployRate = 0.12f;
+        public float regenRate = 0.08f;
 
-        return icePowerHP * throttle + electrical;
-    }
+        [Header("Overdrive")]
+        public bool overdrive;
+        public float overdriveMultiplier = 1.08f;
 
-    public void Regenerate(float brake)
-    {
-        stateOfCharge = Mathf.Clamp01(
-            stateOfCharge + regenRate * Mathf.Clamp01(brake) * Time.fixedDeltaTime);
+        public float AvailablePowerKw
+        {
+            get
+            {
+                float ice = maxIcePowerKw;
+                float electric = stateOfCharge > 0.02f ? maxMguKPowerKw : 0f;
+                float total = ice + electric;
+                return overdrive ? total * overdriveMultiplier : total;
+            }
+        }
+
+        public void Simulate(float throttle, float brake, float dt)
+        {
+            float targetRpm = Mathf.Lerp(idleRpm, maxRpm, Mathf.Clamp01(throttle));
+            rpm = Mathf.Lerp(rpm, targetRpm, dt * 5f);
+
+            if (overdrive && throttle > 0.8f)
+                stateOfCharge = Mathf.Clamp01(stateOfCharge - deployRate * dt);
+            else if (brake > 0.1f)
+                stateOfCharge = Mathf.Clamp01(stateOfCharge + regenRate * brake * dt);
+        }
     }
 }
