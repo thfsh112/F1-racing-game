@@ -1,17 +1,40 @@
 using UnityEngine;
 
-[System.Serializable]
-public class F12026_TireModel
+namespace F12026
 {
-    [Range(0.5f, 2f)] public float peakGrip = 1.45f;
-    [Range(0.01f, 1f)] public float peakSlip = 0.12f;
-    [Range(0.1f, 2f)] public float combinedGrip = 1f;
-
-    public float CalculateGrip(float slipRatio, float slipAngle)
+    public class F12026_TireModel : MonoBehaviour
     {
-        float longitudinal = 1f - Mathf.Exp(-Mathf.Abs(slipRatio) / Mathf.Max(peakSlip, 0.001f));
-        float lateral = 1f - Mathf.Exp(-Mathf.Abs(slipAngle) / Mathf.Max(peakSlip, 0.001f));
-        float combined = Mathf.Clamp01(Mathf.Sqrt(longitudinal * longitudinal + lateral * lateral));
-        return peakGrip * combinedGrip * Mathf.Clamp01(combined);
+        public enum Compound { Soft, Medium, Hard, Intermediate, Wet }
+        public Compound compound = Compound.Medium;
+
+        [Header("Grip")]
+        public float peakGrip = 1.55f;
+        public float longitudinalStiffness = 10f;
+        public float lateralStiffness = 12f;
+
+        [Header("Slip")]
+        public float slipAngle;
+        public float slipRatio;
+        public float normalizedGrip = 1f;
+
+        public float EvaluateGrip(float speedKph, float temperatureC)
+        {
+            float tempFactor = Mathf.Clamp01(1f - Mathf.Abs(temperatureC - 92f) / 65f);
+            float speedFactor = Mathf.Clamp01(0.72f + speedKph / 400f);
+            normalizedGrip = Mathf.Clamp01(tempFactor * speedFactor);
+            return peakGrip * normalizedGrip;
+        }
+
+        public float EvaluateLateralForce(float slip)
+        {
+            slipAngle = slip;
+            return Mathf.Clamp(slip * lateralStiffness, -peakGrip, peakGrip) * normalizedGrip;
+        }
+
+        public float EvaluateLongitudinalForce(float slip)
+        {
+            slipRatio = slip;
+            return Mathf.Clamp(slip * longitudinalStiffness, -peakGrip, peakGrip) * normalizedGrip;
+        }
     }
 }
