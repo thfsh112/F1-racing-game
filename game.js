@@ -4,7 +4,7 @@ const root=document.querySelector('#game');
 const speedEl=document.querySelector('#speed');
 const lapEl=document.querySelector('#lap');
 const timeEl=document.querySelector('#time');
-const count=document.querySelector('#countdown');
+const count=document.querySelector('#countdownText');
 const touch=document.querySelector('#touch');
 const gearEl=document.querySelector('#gear');
 const rpmEl=document.querySelector('#rpm');
@@ -14,6 +14,8 @@ const tyreEl=document.querySelector('#tyre');
 const restartBtn=document.querySelector('#restart');
 const aeroBtn=document.querySelector('#aeroBtn');
 const overdriveBtn=document.querySelector('#overdriveBtn');
+const cameraBtn=document.querySelector('#cameraBtn');
+const cameraLabel=document.querySelector('#cameraLabel');
 
 document.documentElement.style.background='#071018';
 document.body.style.background='#071018';
@@ -148,6 +150,8 @@ async function startRace(){
  for(const n of['3','2','1']){count.textContent=n;await new Promise(x=>setTimeout(x,600))}
  count.textContent='GO!';run=true;start=performance.now();setTimeout(()=>count.textContent='',450);
 }
+let cameraMode=0;
+if(cameraBtn) cameraBtn.onclick=()=>{cameraMode=(cameraMode+1)%2;cameraBtn.textContent=cameraMode?'CAM · COCKPIT':'CAM · CHASE';cameraLabel.textContent=cameraMode?'COCKPIT CAMERA':'CHASE CAMERA'};
 restartBtn.onclick=startRace;startRace();
 
 const clock=new THREE.Clock();
@@ -179,8 +183,13 @@ function animate(){
   aeroBtn.textContent=activeAero.xMode?'AERO · X':'AERO · Z';
  }
  const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));
- camera.position.lerp(car.position.clone().addScaledVector(f,-11).setY(5.8),1-Math.exp(-dt*5));
- camera.lookAt(car.position.x,car.position.y+.55,car.position.z+1);
+  const chaseTarget=car.position.clone().addScaledVector(f,-11).setY(5.8);
+  const cockpitTarget=car.position.clone().addScaledVector(f,.18).setY(1.03);
+  const target=cameraMode?cockpitTarget:chaseTarget;
+  camera.position.lerp(target,1-Math.exp(-dt*5));
+  if(cameraMode){
+    const look=car.position.clone().addScaledVector(f,3.2);look.y=1.02;camera.lookAt(look);
+  }else camera.lookAt(car.position.x,car.position.y+.55,car.position.z+1);
  renderer.render(scene,camera);
 }
 animate();
