@@ -1,48 +1,56 @@
 using UnityEngine;
 
-public class F12026_Suspension : MonoBehaviour
+namespace F12026
 {
-    public WheelCollider frontLeft, frontRight, rearLeft, rearRight;
-    public float spring = 35000f;
-    public float damper = 5000f;
-    public float antiRoll = 7000f;
-
-    private void FixedUpdate()
+    public class F12026_Suspension : MonoBehaviour
     {
-        Configure(frontLeft); Configure(frontRight);
-        Configure(rearLeft); Configure(rearRight);
-        AntiRoll(frontLeft, frontRight);
-        AntiRoll(rearLeft, rearRight);
-    }
+        public WheelCollider[] wheels = new WheelCollider[4];
+        public float antiRoll = 9000f;
+        public float frontSpring = 45000f;
+        public float rearSpring = 50000f;
+        public float damper = 6500f;
 
-    private void Configure(WheelCollider wheel)
-    {
-        if (!wheel) return;
-        var s = wheel.suspensionSpring;
-        s.spring = spring;
-        s.damper = damper;
-        wheel.suspensionSpring = s;
-    }
+        private void Awake()
+        {
+            for (int i = 0; i < wheels.Length; i++)
+            {
+                if (!wheels[i]) continue;
+                var spring = wheels[i].suspensionSpring;
+                spring.spring = i < 2 ? frontSpring : rearSpring;
+                spring.damper = damper;
+                spring.targetPosition = 0.5f;
+                wheels[i].suspensionSpring = spring;
+            }
+        }
 
-    private void AntiRoll(WheelCollider left, WheelCollider right)
-    {
-        if (!left || !right) return;
-        float travelL = Travel(left);
-        float travelR = Travel(right);
-        float force = (travelL - travelR) * antiRoll;
+        private void FixedUpdate()
+        {
+            ApplyAntiRoll(0, 1);
+            ApplyAntiRoll(2, 3);
+        }
 
-        if (left.GetGroundHit(out var hitL) && left.attachedRigidbody)
-            left.attachedRigidbody.AddForceAtPosition(left.transform.up * -force, hitL.point);
+        private void ApplyAntiRoll(int left, int right)
+        {
+            if (!wheels[left] || !wheels[right]) return;
 
-        if (right.GetGroundHit(out var hitR) && right.attachedRigidbody)
-            right.attachedRigidbody.AddForceAtPosition(right.transform.up * force, hitR.point);
-    }
+            float travelL = GetTravel(wheels[left]);
+            float travelR = GetTravel(wheels[right]);
+            float force = (travelL - travelR) * antiRoll;
 
-    private static float Travel(WheelCollider wheel)
-    {
-        if (!wheel.GetGroundHit(out var hit)) return 1f;
-        Vector3 local = wheel.transform.InverseTransformPoint(hit.point);
-        return Mathf.Clamp01((-local.y - wheel.radius) /
-                             Mathf.Max(wheel.suspensionDistance, 0.001f));
+            if (wheels[left].GetGroundHit(out var hitL))
+                wheels[left].attachedRigidbody.AddForceAtPosition(
+                    wheels[left].transform.up * -force, hitL.point);
+
+            if (wheels[right].GetGroundHit(out var hitR))
+                wheels[right].attachedRigidbody.AddForceAtPosition(
+                    wheels[right].transform.up * force, hitR.point);
+        }
+
+        private static float GetTravel(WheelCollider wheel)
+        {
+            if (!wheel.GetGroundHit(out var hit)) return 1f;
+            Vector3 local = wheel.transform.InverseTransformPoint(hit.point);
+            return Mathf.Clamp01((-local.y - wheel.radius) / wheel.suspensionDistance);
+        }
     }
 }
