@@ -123,52 +123,84 @@ touch.querySelectorAll('button').forEach(b=>{
   b.onpointerup=b.onpointercancel=b.onpointerleave=()=>key[k]=false;
 });
 
-let run=false,v=0,offset=0,progress=0,last=.99,laps=0,start=0;
-function fmt(ms){
-  const m=Math.floor(ms/60000),sec=Math.floor(ms/1000)%60,mm=Math.floor(ms)%1000;
-  return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')+'.'+String(mm).padStart(3,'0');
+/* Race + input + simplified AI */
+const key={left:false,right:false,throttle:false,brake:false};
+document.querySelectorAll('[data-key]').forEach(b=>{
+ const k=b.dataset.key;
+ b.onpointerdown=e=>{e.preventDefault();key[k]=true};
+ b.onpointerup=b.onpointercancel=b.onpointerleave=()=>key[k]=false;
+});
+addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')key.left=true;if(e.key==='ArrowRight'||e.key==='d')key.right=true;if(e.key==='ArrowUp'||e.key==='w')key.throttle=true;if(e.key==='ArrowDown'||e.key==='s')key.brake=true;if(e.key.toLowerCase()==='x')activeAero.setXMode(true);if(e.key.toLowerCase()==='z')activeAero.setXMode(false);if(e.code==='Space')powerUnit.overtake=true});
+addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')key.left=false;if(e.key==='ArrowRight'||e.key==='d')key.right=false;if(e.key==='ArrowUp'||e.key==='w')key.throttle=false;if(e.key==='ArrowDown'||e.key==='s')key.brake=false;if(e.code==='Space')powerUnit.overtake=false});
+$('aeroBtn').onclick=()=>activeAero.setXMode(!activeAero.xMode);
+$('overdriveBtn').onpointerdown=()=>powerUnit.overtake=true;
+$('overdriveBtn').onpointerup=$('overdriveBtn').onpointercancel=()=>powerUnit.overtake=false;
+
+const aiCars=[];
+function makeAI(i){
+ const g=new THREE.Group(),m=i%2?mats.accent:mats.white;
+ const b=new THREE.Mesh(new THREE.BoxGeometry(.95,.23,2.05),m);b.position.y=.35;g.add(b);
+ const w=new THREE.Mesh(new THREE.BoxGeometry(1.45,.07,.25),mats.carbon);w.position.set(0,.30,-1.02);g.add(w);
+ for(const x of[-.55,.55])for(const z of[-.70,.70]){const t=new THREE.Mesh(new THREE.CylinderGeometry(.27,.27,.14,16),mats.tyre);t.rotation.z=Math.PI/2;t.position.set(x,.29,z);g.add(t)}
+ g.userData={progress:(i+1)*.025,offset:(i-1.5)*1.65,speed:56+i*1.5};
+ scene.add(g);return g;
 }
+for(let i=0;i<4;i++)aiCars.push(makeAI(i));
+
+let run=false,v=0,offset=0,progress=0,last=.99,laps=0,start=0,finish=false;
+function fmt(ms){const m=Math.floor(ms/60000),sec=Math.floor(ms/1000)%60,mm=Math.floor(ms)%1000;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0')+'.'+String(mm).padStart(3,'0')}
 function place(){
-  const p=curve.getPointAt(progress),d=curve.getTangentAt(progress);
-  const r=new THREE.Vector3(d.z,0,-d.x);
-  p.addScaledVector(r,offset);car.position.copy(p);car.position.y=.15;
-  car.rotation.y=Math.atan2(d.x,d.z);
+ const p=curve.getPointAt(progress),d=curve.getTangentAt(progress),r=new THREE.Vector3(d.z,0,-d.x);
+ p.addScaledVector(r,offset);car.position.copy(p);car.position.y=.15;car.rotation.y=Math.atan2(d.x,d.z);
+}
+function placeAI(a,dt){
+ a.userData.speed+=(58-a.userData.speed)*dt*.7;
+ a.userData.progress=(a.userData.progress+a.userData.speed*dt/L)%1;
+ const p=curve.getPointAt(a.userData.progress),d=curve.getTangentAt(a.userData.progress),r=new THREE.Vector3(d.z,0,-d.x);
+ p.addScaledVector(r,a.userData.offset);a.position.copy(p);a.position.y=.12;a.rotation.y=Math.atan2(d.x,d.z);
 }
 place();
 
 async function startRace(){
-  run=false;v=0;offset=0;progress=0;last=.99;laps=0;place();
-  for(const n of ['3','2','1']){count.textContent=n;await new Promise(x=>setTimeout(x,600));}
-  count.textContent='GO!';run=true;start=performance.now();
-  setTimeout(()=>count.textContent='',500);
+ run=false;finish=false;v=0;offset=0;progress=0;last=.99;laps=0;powerUnit.energy=4;powerUnit.gear=1;tireModel.wear=1;tireModel.temp=72;activeAero.setXMode(false);place();
+ aiCars.forEach((a,i)=>{a.userData.progress=(i+1)*.025;a.userData.offset=(i-1.5)*1.65});
+ for(const n of['3','2','1']){count.textContent=n;await new Promise(x=>setTimeout(x,600))}
+ count.textContent='GO!';run=true;start=performance.now();setTimeout(()=>count.textContent='',450);
 }
-document.querySelector('#restart').onclick=startRace;
-startRace();
+$('restart').onclick=startRace;startRace();
 
 const clock=new THREE.Clock();
 function animate(){
-  requestAnimationFrame(animate);
-  const dt=Math.min(clock.getDelta(),.04),now=performance.now();
-  if(run){
-    const target=key.throttle?42:0;
-    v+=(target-v*.32-(key.brake?58:0))*dt;
-    v=Math.max(0,Math.min(82,v));
-    const steer=(key.right?1:0)-(key.left?1:0);
-    offset+=steer*v*.070*dt;
-    offset=Math.max(-W/2-3,Math.min(W/2+3,offset));
-    if(Math.abs(offset)>W/2)v*=.985;
-    const previous=progress;
-    progress=(progress+v*dt/L)%1;
-    if(previous>.8&&progress<.2){laps++;if(laps>=3){run=false;count.textContent='FINISH';}}
-    speedEl.textContent=Math.round(v*3.6)+' KM/H';
-    lapEl.textContent=Math.min(laps+1,3)+' / 3 LAP';
-    timeEl.textContent=fmt(now-start);
-    place();
-  }
-  const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));
-  camera.position.lerp(car.position.clone().addScaledVector(f,-11).setY(5.8),.10);
-  camera.lookAt(car.position.x,car.position.y+.55,car.position.z+1);
-  renderer.render(scene,camera);
+ requestAnimationFrame(animate);
+ const dt=Math.min(clock.getDelta(),.04),now=performance.now();
+ if(run&&!finish){
+  const throttle=key.throttle,brake=key.brake;
+  const target=throttle?42:0;
+  v+=(target-v*.32-(brake?58:0))*dt;
+  v=Math.max(0,Math.min(82,v));
+  const steer=(key.right?1:0)-(key.left?1:0);
+  offset+=steer*v*.070*dt;
+  offset=Math.max(-W/2-3,Math.min(W/2+3,offset));
+  if(Math.abs(offset)>W/2)v*=.985;
+  const previous=progress;progress=(progress+v*dt/L)%1;
+  if(previous>.8&&progress<.2){laps++;if(laps>=3){finish=true;run=false;count.textContent='FINISH'}}
+  powerUnit.update(dt,throttle,v);tireModel.update(dt,v,steer,brake,throttle);activeAero.update(dt);
+  wheelMeshes.forEach(w=>w.rotation.y+=v*dt*2.2);
+  place();aiCars.forEach(a=>placeAI(a,dt));
+  speedEl.textContent=Math.round(v*3.6)+' KM/H';
+  gearEl.textContent=powerUnit.gear;
+  rpmEl.textContent=Math.round(powerUnit.rpm)+' RPM';
+  lapEl.textContent=Math.min(laps+1,3)+' / 3 LAP';
+  timeEl.textContent=fmt(now-start);
+  aeroEl.textContent=activeAero.xMode?'X-MODE · LOW DRAG':'Z-MODE · HIGH DOWNFORCE';
+  batteryEl.textContent='ERS '+Math.round(powerUnit.energy/powerUnit.maxEnergy*100)+'%'+(powerUnit.overtake?' · OVERRIDE':'');
+  tyreEl.textContent='TYRE '+Math.round(tireModel.wear*100)+'% · '+Math.round(tireModel.temp)+'°C';
+  $('aeroBtn').textContent=activeAero.xMode?'AERO · X':'AERO · Z';
+ }
+ const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));
+ camera.position.lerp(car.position.clone().addScaledVector(f,-11).setY(5.8),1-Math.exp(-dt*5));
+ camera.lookAt(car.position.x,car.position.y+.55,car.position.z+1);
+ renderer.render(scene,camera);
 }
 animate();
 
