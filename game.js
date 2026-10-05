@@ -51,15 +51,6 @@ strip(W,.03,new THREE.MeshStandardMaterial({color:0x262a2f,roughness:1}));
 const ground=new THREE.Mesh(new THREE.PlaneGeometry(700,700),new THREE.MeshStandardMaterial({color:0x35652f,roughness:1}));
 ground.rotation.x=-Math.PI/2;ground.position.y=-.05;scene.add(ground);
 
-const mats={
- body:new THREE.MeshStandardMaterial({color:0x9da4aa,metalness:.72,roughness:.25}),
- carbon:new THREE.MeshStandardMaterial({color:0x11151a,metalness:.35,roughness:.55}),
- tyre:new THREE.MeshStandardMaterial({color:0x101010,roughness:.96}),
- glass:new THREE.MeshStandardMaterial({color:0x07121b,metalness:.25,roughness:.12}),
- trim:new THREE.MeshStandardMaterial({color:0x4b535a,metalness:.7,roughness:.3}),
- light:new THREE.MeshStandardMaterial({color:0xdce8ef,metalness:.25,roughness:.2})
-};
-
 /* 2026 vehicle rig: original, livery-neutral and reference-inspired. */
 const mats={
  body:new THREE.MeshStandardMaterial({color:0x9fa4a7,metalness:.76,roughness:.24}),
@@ -67,7 +58,8 @@ const mats={
  tyre:new THREE.MeshStandardMaterial({color:0x090909,roughness:.98}),
  glass:new THREE.MeshStandardMaterial({color:0x06131d,metalness:.2,roughness:.1}),
  trim:new THREE.MeshStandardMaterial({color:0x4d555b,metalness:.72,roughness:.3}),
- accent:new THREE.MeshStandardMaterial({color:0xb9282f,metalness:.4,roughness:.3})
+ accent:new THREE.MeshStandardMaterial({color:0xb9282f,metalness:.4,roughness:.3}),
+white:new THREE.MeshStandardMaterial({color:0xe9edf0,metalness:.15,roughness:.32})
 };
 class ActiveAero{
  constructor(front,rear){this.front=front;this.rear=rear;this.xMode=false;this.target=0}
@@ -104,25 +96,6 @@ function buildWheel(side,z,front){const x=side*.84,g=new THREE.Group();g.name=(f
 buildWheel(-1,1.18,true);buildWheel(1,1.18,true);buildWheel(-1,-1.18,false);buildWheel(1,-1.18,false);
 scene.add(car);
 const activeAero=new ActiveAero(frontWing,rearWing);
-const key={left:false,right:false,throttle:false,brake:false};
-addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft'||e.key==='a')key.left=true;
-  if(e.key==='ArrowRight'||e.key==='d')key.right=true;
-  if(e.key==='ArrowUp'||e.key==='w')key.throttle=true;
-  if(e.key==='ArrowDown'||e.key==='s')key.brake=true;
-});
-addEventListener('keyup',e=>{
-  if(e.key==='ArrowLeft'||e.key==='a')key.left=false;
-  if(e.key==='ArrowRight'||e.key==='d')key.right=false;
-  if(e.key==='ArrowUp'||e.key==='w')key.throttle=false;
-  if(e.key==='ArrowDown'||e.key==='s')key.brake=false;
-});
-touch.querySelectorAll('button').forEach(b=>{
-  const k=b.dataset.key;
-  b.onpointerdown=e=>{e.preventDefault();key[k]=true};
-  b.onpointerup=b.onpointercancel=b.onpointerleave=()=>key[k]=false;
-});
-
 /* Race + input + simplified AI */
 const key={left:false,right:false,throttle:false,brake:false};
 document.querySelectorAll('[data-key]').forEach(b=>{
@@ -207,5 +180,5 @@ animate();
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  renderer.setSize(innerWidth,innerHeight);
+  resize();
 });
