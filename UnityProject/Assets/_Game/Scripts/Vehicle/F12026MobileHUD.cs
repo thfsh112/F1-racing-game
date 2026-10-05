@@ -20,7 +20,7 @@ public class F12026MobileHUD : MonoBehaviour
 
         if (gearText != null)
         {
-            int gear = car.gearbox != null ? car.gearbox.CurrentGear : 1;
+            int gear = car.gearbox != null ? car.gearbox.gear : 1;
             gearText.text = gear.ToString();
         }
 
