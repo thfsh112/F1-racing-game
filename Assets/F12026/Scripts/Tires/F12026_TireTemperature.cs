@@ -1,17 +1,21 @@
 using UnityEngine;
 
-[System.Serializable]
-public class F12026_TireTemperature
+namespace F12026
 {
-    [Range(20f,160f)] public float temperatureC = 75f;
-    public float targetOperatingC = 90f;
-    public float heatingRate = 18f;
-    public float coolingRate = 4f;
-
-    public void UpdateTemperature(float slipEnergy, float dt)
+    public class F12026_TireTemperature : MonoBehaviour
     {
-        float target = targetOperatingC + Mathf.Clamp01(slipEnergy) * 35f;
-        float rate = target > temperatureC ? heatingRate : coolingRate;
-        temperatureC = Mathf.MoveTowards(temperatureC, target, rate * dt);
+        public float temperatureC = 82f;
+        public float coreTemperatureC = 82f;
+        public float ambientTemperatureC = 25f;
+        public float heatingRate = 0.35f;
+        public float coolingRate = 0.08f;
+
+        public void Simulate(float slipEnergy, float brakeEnergy, float dt)
+        {
+            float heating = (Mathf.Abs(slipEnergy) + Mathf.Abs(brakeEnergy)) * heatingRate;
+            float cooling = (temperatureC - ambientTemperatureC) * coolingRate;
+            temperatureC = Mathf.Clamp(temperatureC + (heating - cooling) * dt, 20f, 160f);
+            coreTemperatureC = Mathf.Lerp(coreTemperatureC, temperatureC, dt * 0.4f);
+        }
     }
 }
