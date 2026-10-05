@@ -11,7 +11,7 @@ public class F12026CarController : MonoBehaviour
     [Range(0.2f, 0.8f)] public float staticFrontWeight = 0.46f;
     [Min(0.05f)] public float centreOfMassHeight = 0.30f;
 
-    [Header("Power Unit")]
+    [Header("2026 Systems")]\n    public F12026PowerUnit powerUnit;\n    public F12026Gearbox gearbox;\n    public F12026BrakeSystem brakeSystem;\n    public F12026Differential differential;\n\n    [Header("Power Unit")]
     [Min(0f)] public float icePowerKw = 400f;
     [Min(0f)] public float mgukNormalPowerKw = 350f;
     [Min(0f)] public float mgukOtherLapPowerKw = 250f;
@@ -275,7 +275,7 @@ public class F12026CarController : MonoBehaviour
         rb.AddForce(dragForce, ForceMode.Force);
     }
 
-    private void ReadInput()
+    public void SetXMode(bool enabled) => activeAeroXMode = enabled;\n\n    private void ReadInput()
     {
         float steer = Input.GetAxisRaw("Horizontal");
         float throttle = Input.GetAxisRaw("Vertical");
