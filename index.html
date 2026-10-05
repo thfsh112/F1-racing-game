@@ -34,7 +34,24 @@
   <div id="countdown"><strong id="countdownText">3</strong><small>GET READY</small></div>
   <div id="cameraLabel">CHASE CAMERA</div>
 
-  <div id="buttons">
+  <div id="ersPanel">
+  <div class="panelTitle">ENERGY STORE</div>
+  <div class="ersValue"><strong id="ersPercent">100</strong><span>%</span></div>
+  <div class="ersBar"><div id="ersFill"></div></div>
+  <button id="overdriveBtn" class="ersButton">OVERTAKE</button>
+  <small>HOLD / PRESS TO DEPLOY</small>
+</div>
+<div id="pitPanel">
+  <div class="panelTitle">PIT STRATEGY</div>
+  <div class="pitRow"><span>PIT LAP</span><strong id="pitLap">12</strong></div>
+  <div class="pitRow"><span>COMPOUND</span><div class="compoundButtons">
+    <button class="compound active" data-compound="S">S</button>
+    <button class="compound" data-compound="M">M</button>
+    <button class="compound" data-compound="H">H</button>
+  </div></div>
+  <button id="pitButton" class="pitButton">PIT STRATEGY</button>
+</div>
+<div id="buttons">
     <button id="cameraBtn">CAM · CHASE</button>
     <button id="aeroBtn">AERO · Z</button>
     <button id="overdriveBtn">OVERTAKE</button>
