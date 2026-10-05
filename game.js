@@ -16,6 +16,13 @@ const aeroBtn=document.querySelector('#aeroBtn');
 const overdriveBtn=document.querySelector('#overdriveBtn');
 const cameraBtn=document.querySelector('#cameraBtn');
 const cameraLabel=document.querySelector('#cameraLabel');
+const ersPercent=document.querySelector('#ersPercent');
+const ersFill=document.querySelector('#ersFill');
+const pitLapEl=document.querySelector('#pitLap');
+const pitButton=document.querySelector('#pitButton');
+const compoundButtons=document.querySelectorAll('.compound');
+let selectedCompound='S';
+let pitLap=12;
 
 document.documentElement.style.background='#071018';
 document.body.style.background='#071018';
@@ -116,8 +123,14 @@ document.querySelectorAll('[data-key]').forEach(b=>{
 addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')key.left=true;if(e.key==='ArrowRight'||e.key==='d')key.right=true;if(e.key==='ArrowUp'||e.key==='w')key.throttle=true;if(e.key==='ArrowDown'||e.key==='s')key.brake=true;if(e.key.toLowerCase()==='x')activeAero.setXMode(true);if(e.key.toLowerCase()==='z')activeAero.setXMode(false);if(e.code==='Space')powerUnit.overtake=true});
 addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')key.left=false;if(e.key==='ArrowRight'||e.key==='d')key.right=false;if(e.key==='ArrowUp'||e.key==='w')key.throttle=false;if(e.key==='ArrowDown'||e.key==='s')key.brake=false;if(e.code==='Space')powerUnit.overtake=false});
 aeroBtn.onclick=()=>activeAero.setXMode(!activeAero.xMode);
-overdriveBtn.onpointerdown=()=>powerUnit.overtake=true;
-overdriveBtn.onpointerup=overdriveBtn.onpointercancel=()=>powerUnit.overtake=false;
+let overtakeToggle=false;
+function setOvertake(v){powerUnit.overtake=v;overdriveBtn.classList.toggle('active',v)}
+overdriveBtn.onclick=()=>{overtakeToggle=!overtakeToggle;setOvertake(overtakeToggle)};
+overdriveBtn.onpointerdown=()=>setOvertake(true);
+overdriveBtn.onpointerup=()=>{if(!overtakeToggle)setOvertake(false)};
+overdriveBtn.onpointercancel=()=>{if(!overtakeToggle)setOvertake(false)};
+compoundButtons.forEach(b=>b.onclick=()=>{selectedCompound=b.dataset.compound;compoundButtons.forEach(x=>x.classList.remove('active'));b.classList.add('active');tireModel.compound=selectedCompound});
+if(pitButton)pitButton.onclick=()=>{pitLap=Math.max(laps+1,pitLap);pitLapEl.textContent=pitLap};
 
 const aiCars=[];
 function makeAI(i){
@@ -180,6 +193,9 @@ function animate(){
   aeroEl.textContent=activeAero.xMode?'X-MODE · LOW DRAG':'Z-MODE · HIGH DOWNFORCE';
   batteryEl.textContent='ERS '+Math.round(powerUnit.energy/powerUnit.maxEnergy*100)+'%'+(powerUnit.overtake?' · OVERRIDE':'');
   tyreEl.textContent='TYRE '+Math.round(tireModel.wear*100)+'% · '+Math.round(tireModel.temp)+'°C';
+  const ers=Math.round(powerUnit.energy/powerUnit.maxEnergy*100);
+  if(ersPercent)ersPercent.textContent=ers;
+  if(ersFill){ersFill.style.width=ers+'%';ersFill.classList.toggle('low',ers<=20);}
   aeroBtn.textContent=activeAero.xMode?'AERO · X':'AERO · Z';
  }
  const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));
