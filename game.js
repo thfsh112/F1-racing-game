@@ -6,6 +6,14 @@ const lapEl=document.querySelector('#lap');
 const timeEl=document.querySelector('#time');
 const count=document.querySelector('#countdown');
 const touch=document.querySelector('#touch');
+const gearEl=document.querySelector('#gear');
+const rpmEl=document.querySelector('#rpm');
+const aeroEl=document.querySelector('#aero');
+const batteryEl=document.querySelector('#battery');
+const tyreEl=document.querySelector('#tyre');
+const restartBtn=document.querySelector('#restart');
+const aeroBtn=document.querySelector('#aeroBtn');
+const overdriveBtn=document.querySelector('#overdriveBtn');
 
 document.documentElement.style.background='#071018';
 document.body.style.background='#071018';
@@ -105,9 +113,9 @@ document.querySelectorAll('[data-key]').forEach(b=>{
 });
 addEventListener('keydown',e=>{if(e.key==='ArrowLeft'||e.key==='a')key.left=true;if(e.key==='ArrowRight'||e.key==='d')key.right=true;if(e.key==='ArrowUp'||e.key==='w')key.throttle=true;if(e.key==='ArrowDown'||e.key==='s')key.brake=true;if(e.key.toLowerCase()==='x')activeAero.setXMode(true);if(e.key.toLowerCase()==='z')activeAero.setXMode(false);if(e.code==='Space')powerUnit.overtake=true});
 addEventListener('keyup',e=>{if(e.key==='ArrowLeft'||e.key==='a')key.left=false;if(e.key==='ArrowRight'||e.key==='d')key.right=false;if(e.key==='ArrowUp'||e.key==='w')key.throttle=false;if(e.key==='ArrowDown'||e.key==='s')key.brake=false;if(e.code==='Space')powerUnit.overtake=false});
-$('aeroBtn').onclick=()=>activeAero.setXMode(!activeAero.xMode);
-$('overdriveBtn').onpointerdown=()=>powerUnit.overtake=true;
-$('overdriveBtn').onpointerup=$('overdriveBtn').onpointercancel=()=>powerUnit.overtake=false;
+aeroBtn.onclick=()=>activeAero.setXMode(!activeAero.xMode);
+overdriveBtn.onpointerdown=()=>powerUnit.overtake=true;
+overdriveBtn.onpointerup=overdriveBtn.onpointercancel=()=>powerUnit.overtake=false;
 
 const aiCars=[];
 function makeAI(i){
@@ -140,7 +148,7 @@ async function startRace(){
  for(const n of['3','2','1']){count.textContent=n;await new Promise(x=>setTimeout(x,600))}
  count.textContent='GO!';run=true;start=performance.now();setTimeout(()=>count.textContent='',450);
 }
-$('restart').onclick=startRace;startRace();
+restartBtn.onclick=startRace;startRace();
 
 const clock=new THREE.Clock();
 function animate(){
@@ -168,7 +176,7 @@ function animate(){
   aeroEl.textContent=activeAero.xMode?'X-MODE · LOW DRAG':'Z-MODE · HIGH DOWNFORCE';
   batteryEl.textContent='ERS '+Math.round(powerUnit.energy/powerUnit.maxEnergy*100)+'%'+(powerUnit.overtake?' · OVERRIDE':'');
   tyreEl.textContent='TYRE '+Math.round(tireModel.wear*100)+'% · '+Math.round(tireModel.temp)+'°C';
-  $('aeroBtn').textContent=activeAero.xMode?'AERO · X':'AERO · Z';
+  aeroBtn.textContent=activeAero.xMode?'AERO · X':'AERO · Z';
  }
  const f=new THREE.Vector3(Math.sin(car.rotation.y),0,Math.cos(car.rotation.y));
  camera.position.lerp(car.position.clone().addScaledVector(f,-11).setY(5.8),1-Math.exp(-dt*5));
@@ -180,5 +188,5 @@ animate();
 addEventListener('resize',()=>{
   camera.aspect=innerWidth/innerHeight;
   camera.updateProjectionMatrix();
-  resize();
+  renderer.setSize(innerWidth,innerHeight);
 });
