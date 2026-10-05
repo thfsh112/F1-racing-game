@@ -1,1 +1,50 @@
-<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><title>Formula Rush V1</title><link rel="stylesheet" href="./style.css"></head><body><div id="game"></div><div id="hud"><b>FORMULA RUSH · V1</b><span id="speed">0 KM/H</span><span id="lap">1 / 3 LAP</span><span id="time">00:00.000</span></div><div id="message"><strong id="countdown">3</strong></div><button id="restart">↻ RESTART</button><div id="touch"><button data-key="left">◀</button><button data-key="right">▶</button><button data-key="brake">BRAKE</button><button data-key="throttle">THROTTLE</button></div><script type="module" src="./game.js"></script></body></html>
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Formula Rush · 2026</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="game"></div>
+
+<div id="hud">
+  <div class="brand">FORMULA RUSH <small>2026</small></div>
+  <div class="telemetry">
+    <span id="speed">0 KM/H</span>
+    <span id="gear">N</span>
+    <span id="rpm">0 RPM</span>
+    <span id="lap">1 / 3 LAP</span>
+    <span id="time">00:00.000</span>
+  </div>
+  <div class="systems">
+    <span id="aero">Z-MODE</span>
+    <span id="battery">ERS 100%</span>
+    <span id="tyre">TYRE 100%</span>
+  </div>
+</div>
+
+<div id="message"><strong id="countdown">3</strong></div>
+<div id="status">ACTIVE AERO · Z / X</div>
+
+<div id="buttons">
+  <button id="restart">↻ RESTART</button>
+  <button id="aeroBtn">AERO · Z</button>
+  <button id="overdriveBtn">OVERTAKE</button>
+</div>
+
+<div id="touch">
+  <div class="steerGroup">
+    <button data-key="left">◀</button>
+    <button data-key="right">▶</button>
+  </div>
+  <div class="pedalGroup">
+    <button data-key="brake">BRAKE</button>
+    <button data-key="throttle">THROTTLE</button>
+  </div>
+</div>
+
+<script type="module" src="./game.js"></script>
+</body>
+</html>
