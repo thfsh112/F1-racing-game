@@ -1,6 +1,7 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
 
 const root=document.querySelector('#game');
+const loadingEl=document.querySelector('#loading');
 const speedEl=document.querySelector('#speed');
 const lapEl=document.querySelector('#lap');
 const timeEl=document.querySelector('#time');
@@ -38,6 +39,7 @@ renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));
 renderer.setSize(innerWidth,innerHeight);
 renderer.outputColorSpace=THREE.SRGBColorSpace;
 root.appendChild(renderer.domElement);
+if(loadingEl){loadingEl.classList.add('hidden');setTimeout(()=>loadingEl.remove(),500);}
 
 scene.add(new THREE.HemisphereLight(0xe9f7ff,0x26391d,2.2));
 const sun=new THREE.DirectionalLight(0xffffff,2.4);
