@@ -1,28 +1,36 @@
 :root{font-family:Inter,Arial,sans-serif;color:#fff;background:#070a0e}
 *{box-sizing:border-box}
-html,body,#game{margin:0;width:100%;height:100%;overflow:hidden;background:#070a0e}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#070a0e}
 body{touch-action:none}
-canvas{display:block}
-#hud{position:fixed;top:0;left:0;right:0;padding:14px 18px;z-index:5;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:start;pointer-events:none;text-shadow:0 2px 8px #000}
-.brand{font-weight:950;letter-spacing:2px;font-size:17px}.brand small{font-size:10px;opacity:.65}
-.telemetry{display:flex;justify-content:center;gap:18px;font-weight:900;font-size:14px;flex-wrap:wrap}
-.telemetry span:first-child{font-size:22px}
-.systems{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px;font-weight:900}
+#app{position:fixed;inset:0;width:100vw;height:100vh;overflow:hidden}
+#game{position:absolute;inset:0;width:100%;height:100%}
+canvas{display:block;width:100%!important;height:100%!important}
+
+#hud{position:absolute;top:0;left:0;right:0;padding:16px 24px;z-index:5;display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:start;pointer-events:none;text-shadow:0 2px 8px #000}
+.brand{font-weight:950;letter-spacing:2px;font-size:18px}.brand small{font-size:11px;opacity:.65}
+.telemetry{display:flex;justify-content:center;gap:20px;font-weight:900;font-size:14px;flex-wrap:wrap}.telemetry span:first-child{font-size:24px}
+.systems{display:flex;flex-direction:column;align-items:flex-end;gap:5px;font-size:13px;font-weight:900}
 #aero{letter-spacing:1px}
-#message{position:fixed;inset:0;display:grid;place-items:center;z-index:6;color:white;pointer-events:none}
+
+#message{position:absolute;inset:0;display:grid;place-items:center;z-index:6;color:#fff;pointer-events:none}
 #countdown{font:bold italic 120px Arial;text-shadow:0 5px 30px #000}
-#status{position:fixed;left:50%;top:78px;transform:translateX(-50%);z-index:6;font-size:11px;font-weight:900;letter-spacing:2px;opacity:.75}
-#buttons{position:fixed;right:16px;top:66px;display:flex;gap:8px;z-index:9}
-button{font:900 12px Arial;letter-spacing:.5px;color:#fff;background:#111923dd;border:1px solid #ffffff30;border-radius:14px;padding:10px 13px;box-shadow:0 4px 16px #0005}
+#status{position:absolute;left:50%;top:70px;transform:translateX(-50%);z-index:6;font-size:11px;font-weight:900;letter-spacing:2px;opacity:.75;white-space:nowrap}
+#buttons{position:absolute;right:24px;top:66px;display:flex;gap:10px;z-index:9}
+button{font:900 14px Arial;letter-spacing:.5px;color:#fff;background:#111923dd;border:1px solid #ffffff30;border-radius:16px;padding:12px 16px;box-shadow:0 4px 16px #0005}
 button:active{transform:scale(.96)}
-#touch{position:fixed;left:0;right:0;bottom:15px;display:flex;justify-content:space-between;padding:0 18px;z-index:8;pointer-events:none}
-#touch button{pointer-events:auto;width:76px;height:62px;border-radius:20px;background:#0c1420dd;border:1px solid #fff4;font-weight:950}
-.steerGroup,.pedalGroup{display:flex;gap:10px}
-.pedalGroup button:last-child{width:100px}
-@media(max-width:700px){
- #hud{padding:9px 10px;grid-template-columns:1fr auto;gap:3px}
- .telemetry{grid-column:1/-1;order:3;gap:9px;font-size:10px}.telemetry span:first-child{font-size:17px}
- .brand{font-size:13px}.systems{font-size:10px}
- #status{top:65px;font-size:9px}
- #buttons{top:42px;right:8px}.buttons button{padding:8px}
+
+#touch{position:absolute;left:0;right:0;bottom:22px;display:flex;justify-content:space-between;padding:0 28px;z-index:8;pointer-events:none}
+#touch button{pointer-events:auto;width:92px;height:70px;border-radius:22px;background:#0c1420dd;border:1px solid #fff4;font-weight:950;font-size:15px}
+.steerGroup,.pedalGroup{display:flex;gap:14px}.pedalGroup button:last-child{width:118px}
+
+#portraitLock{display:none}
+@media (orientation:portrait){
+  #app{width:100vh;height:100vw;inset:auto;left:0;top:0;transform-origin:top left;transform:rotate(90deg) translateY(-100%);}
+  #portraitLock{display:block;position:fixed;z-index:30;inset:0;background:#070a0e;color:#fff;font-weight:900;text-align:center;padding-top:45vh;font-size:18px;letter-spacing:1px;pointer-events:none;opacity:0;animation:fadeNotice .9s ease forwards}
+}
+@keyframes fadeNotice{0%{opacity:.85}100%{opacity:0}}
+@media (max-height:600px){
+  #hud{padding:10px 18px}.brand{font-size:14px}.telemetry{gap:12px;font-size:11px}.telemetry span:first-child{font-size:18px}.systems{font-size:10px}
+  #status{top:54px;font-size:9px}#buttons{top:44px;right:14px}button{font-size:11px;padding:9px 12px}
+  #touch{bottom:12px;padding:0 18px}#touch button{width:82px;height:58px;font-size:12px}.pedalGroup button:last-child{width:105px}
 }
