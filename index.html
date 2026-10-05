@@ -3,48 +3,57 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<title>Formula Rush · 2026</title>
+<meta name="theme-color" content="#080b10">
+<title>F1 2026 · Racing Simulation</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-<div id="app"><div id="game"></div>
+<div id="app">
+  <div id="game"></div>
 
-<div id="hud">
-  <div class="brand">FORMULA RUSH <small>2026</small></div>
-  <div class="telemetry">
-    <span id="speed">0 KM/H</span>
-    <span id="gear">N</span>
-    <span id="rpm">0 RPM</span>
-    <span id="lap">1 / 3 LAP</span>
-    <span id="time">00:00.000</span>
+  <div id="hud">
+    <div class="topbar">
+      <div class="brand"><b>F1</b><span>2026 RACING SIMULATION</span></div>
+      <div class="raceState"><span class="dot"></span> GRAND PRIX · TEST SESSION</div>
+    </div>
+
+    <div class="telemetry">
+      <div class="speedBlock"><strong id="speed">0</strong><span>KM/H</span></div>
+      <div class="gearBlock"><span>GEAR</span><strong id="gear">N</strong></div>
+      <div class="rpmBlock"><div id="shiftLights"></div><strong id="rpm">0</strong><span>RPM</span></div>
+      <div class="lapBlock"><span>LAP</span><strong id="lap">1 / 3</strong><small id="time">00:00.000</small></div>
+    </div>
+
+    <div class="systems">
+      <div><span>ACTIVE AERO</span><b id="aero">Z · HIGH DOWNFORCE</b></div>
+      <div><span>ERS / SoC</span><b id="battery">100%</b></div>
+      <div><span>TYRE</span><b id="tyre">100% · 72°C</b></div>
+    </div>
   </div>
-  <div class="systems">
-    <span id="aero">Z-MODE</span>
-    <span id="battery">ERS 100%</span>
-    <span id="tyre">TYRE 100%</span>
+
+  <div id="countdown"><strong id="countdownText">3</strong><small>GET READY</small></div>
+  <div id="cameraLabel">CHASE CAMERA</div>
+
+  <div id="buttons">
+    <button id="cameraBtn">CAM · CHASE</button>
+    <button id="aeroBtn">AERO · Z</button>
+    <button id="overdriveBtn">OVERTAKE</button>
+    <button id="restart">↻</button>
   </div>
+
+  <div id="touch">
+    <div class="steerGroup">
+      <button class="touchBtn" data-key="left">◀</button>
+      <button class="touchBtn" data-key="right">▶</button>
+    </div>
+    <div class="pedalGroup">
+      <button class="touchBtn brake" data-key="brake">BRAKE</button>
+      <button class="touchBtn throttle" data-key="throttle">THROTTLE</button>
+    </div>
+  </div>
+
+  <div id="portraitHint">請將手機橫向使用</div>
+  <script type="module" src="./game.js"></script>
 </div>
-
-<div id="message"><strong id="countdown">3</strong></div>
-<div id="status">ACTIVE AERO · Z / X</div>
-
-<div id="buttons">
-  <button id="restart">↻ RESTART</button>
-  <button id="aeroBtn">AERO · Z</button>
-  <button id="overdriveBtn">OVERTAKE</button>
-</div>
-
-<div id="touch">
-  <div class="steerGroup">
-    <button data-key="left">◀</button>
-    <button data-key="right">▶</button>
-  </div>
-  <div class="pedalGroup">
-    <button data-key="brake">BRAKE</button>
-    <button data-key="throttle">THROTTLE</button>
-  </div>
-</div>
-
-<script type="module" src="./game.js"></script></div>
 </body>
 </html>
