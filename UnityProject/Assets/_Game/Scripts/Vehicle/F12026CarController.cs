@@ -11,7 +11,13 @@ public class F12026CarController : MonoBehaviour
     [Range(0.2f, 0.8f)] public float staticFrontWeight = 0.46f;
     [Min(0.05f)] public float centreOfMassHeight = 0.30f;
 
-    [Header("2026 Systems")]\n    public F12026PowerUnit powerUnit;\n    public F12026Gearbox gearbox;\n    public F12026BrakeSystem brakeSystem;\n    public F12026Differential differential;\n\n    [Header("Power Unit")]
+    [Header("2026 Systems")]
+    public F12026PowerUnit powerUnit;
+    public F12026Gearbox gearbox;
+    public F12026BrakeSystem brakeSystem;
+    public F12026Differential differential;
+
+    [Header("Power Unit")]
     [Min(0f)] public float icePowerKw = 400f;
     [Min(0f)] public float mgukNormalPowerKw = 350f;
     [Min(0f)] public float mgukOtherLapPowerKw = 250f;
@@ -20,6 +26,7 @@ public class F12026CarController : MonoBehaviour
     [Range(-1f, 1f)] public float steerInput;
     [Range(0f, 1f)] public float throttleInput;
     [Range(0f, 1f)] public float brakeInput;
+    public bool useLegacyInput = true;
 
     [Header("Active Aero X / Z")]
     public bool activeAeroXMode;
@@ -55,8 +62,7 @@ public class F12026CarController : MonoBehaviour
     public float SpeedKph { get; private set; }
     public float LongitudinalAcceleration { get; private set; }
     public float LateralAcceleration { get; private set; }
-    public float TotalVerticalLoadN =>
-        verticalLoad != null ? verticalLoad.TotalLoadN : 0f;
+    public float TotalVerticalLoadN => verticalLoad != null ? verticalLoad.TotalLoadN : 0f;
 
     private Rigidbody rb;
     private float filteredSteer;
@@ -69,8 +75,11 @@ public class F12026CarController : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.centerOfMass = new Vector3(0f, -centreOfMassHeight, 0f);
 
-        if (verticalLoad == null)
-            verticalLoad = GetComponent<F12026VerticalLoad>();
+        if (powerUnit == null) powerUnit = GetComponent<F12026PowerUnit>();
+        if (gearbox == null) gearbox = GetComponent<F12026Gearbox>();
+        if (brakeSystem == null) brakeSystem = GetComponent<F12026BrakeSystem>();
+        if (differential == null) differential = GetComponent<F12026Differential>();
+        if (verticalLoad == null) verticalLoad = GetComponent<F12026VerticalLoad>();
 
         InitializeSuspension(frontLeftSuspension);
         InitializeSuspension(frontRightSuspension);
@@ -80,18 +89,17 @@ public class F12026CarController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        ReadInput();
+        if (useLegacyInput)
+            ReadInput();
 
         float dt = Time.fixedDeltaTime;
         Vector3 velocity = rb.linearVelocity;
-        Vector3 localVelocity =
-            transform.InverseTransformDirection(velocity);
+        Vector3 localVelocity = transform.InverseTransformDirection(velocity);
 
         SpeedKph = velocity.magnitude * 3.6f;
 
         Vector3 localAcceleration =
-            (localVelocity - previousLocalVelocity) /
-            Mathf.Max(dt, 0.0001f);
+            (localVelocity - previousLocalVelocity) / Mathf.Max(dt, 0.0001f);
 
         LongitudinalAcceleration = localAcceleration.z;
         LateralAcceleration = localAcceleration.x;
@@ -99,10 +107,10 @@ public class F12026CarController : MonoBehaviour
 
         ApplyAero(velocity);
 
-        SimulateCorner(frontLeftSuspension, frontLeftTire, true);
-        SimulateCorner(frontRightSuspension, frontRightTire, true);
-        SimulateCorner(rearLeftSuspension, rearLeftTire, false);
-        SimulateCorner(rearRightSuspension, rearRightTire, false);
+        SimulateCorner(frontLeftSuspension, frontLeftTire, true, true);
+        SimulateCorner(frontRightSuspension, frontRightTire, true, true);
+        SimulateCorner(rearLeftSuspension, rearLeftTire, false, true);
+        SimulateCorner(rearRightSuspension, rearRightTire, false, true);
 
         if (verticalLoad != null)
         {
@@ -127,7 +135,8 @@ public class F12026CarController : MonoBehaviour
     private void SimulateCorner(
         F12026Suspension suspension,
         F12026Tire tire,
-        bool front)
+        bool front,
+        bool driven)
     {
         if (suspension == null || tire == null)
             return;
@@ -138,79 +147,68 @@ public class F12026CarController : MonoBehaviour
             return;
 
         Transform anchor =
-            suspension.suspensionAnchor != null
-                ? suspension.suspensionAnchor
-                : transform;
+            suspension.suspensionAnchor != null ? suspension.suspensionAnchor : transform;
 
         Vector3 wheelForward = anchor.forward;
 
         if (front)
         {
             float targetSteer = steerInput * maxSteerDegrees;
-
             filteredSteer = Mathf.Lerp(
                 filteredSteer,
                 targetSteer,
-                1f - Mathf.Exp(
-                    -steeringResponse * Time.fixedDeltaTime));
+                1f - Mathf.Exp(-steeringResponse * Time.fixedDeltaTime));
 
-            wheelForward =
-                Quaternion.AngleAxis(
-                    filteredSteer,
-                    suspension.ContactNormal) *
-                wheelForward;
+            wheelForward = Quaternion.AngleAxis(
+                filteredSteer,
+                suspension.ContactNormal) * wheelForward;
         }
 
         wheelForward = Vector3.ProjectOnPlane(
-            wheelForward,
-            suspension.ContactNormal).normalized;
+            wheelForward, suspension.ContactNormal).normalized;
 
         Vector3 wheelRight = Vector3.Cross(
-            suspension.ContactNormal,
-            wheelForward).normalized;
+            suspension.ContactNormal, wheelForward).normalized;
 
-        Vector3 pointVelocity =
-            rb.GetPointVelocity(suspension.ContactPoint);
+        Vector3 pointVelocity = rb.GetPointVelocity(suspension.ContactPoint);
 
         Vector3 wheelVelocity = new Vector3(
             Vector3.Dot(pointVelocity, wheelRight),
             0f,
             Vector3.Dot(pointVelocity, wheelForward));
 
-        float normalLoad =
-            Mathf.Max(0f, suspension.SuspensionForce);
-
+        float normalLoad = Mathf.Max(0f, suspension.SuspensionForce);
         float driveTorque = 0f;
 
-        if (!front)
+        if (driven)
         {
             float combinedPowerKw =
-                Mathf.Max(0f, icePowerKw + mgukNormalPowerKw);
+                powerUnit != null
+                    ? powerUnit.GetDrivePowerKw(throttleInput)
+                    : Mathf.Max(0f, icePowerKw + mgukNormalPowerKw);
 
-            float speedTerm =
-                Mathf.Max(1f, SpeedKph / 3.6f + 5f);
+            float speedTerm = Mathf.Max(1f, SpeedKph / 3.6f + 5f);
+            float estimatedTorque = combinedPowerKw * 1000f / speedTerm;
 
-            float estimatedTorque =
-                combinedPowerKw * 1000f / speedTerm;
-
-            driveTorque =
-                estimatedTorque * throttleInput * 0.5f;
+            // Rear-drive baseline. Differential integration is represented by
+            // the configurable differential component and can be expanded per corner.
+            driveTorque = estimatedTorque * throttleInput * 0.5f;
         }
 
         float brakeTorque =
-            maxBrakeTorqueNm *
-            brakeInput *
-            (front ? frontBrakeBias : 1f - frontBrakeBias);
+            brakeSystem != null
+                ? brakeSystem.GetBrakeTorque(brakeInput, front)
+                : maxBrakeTorqueNm * brakeInput *
+                  (front ? frontBrakeBias : 1f - frontBrakeBias);
 
-        Vector3 tyreForceLocal =
-            tire.Simulate(
-                wheelVelocity,
-                normalLoad,
-                driveTorque,
-                brakeTorque,
-                filteredSteer * Mathf.Deg2Rad,
-                Time.fixedDeltaTime,
-                true);
+        Vector3 tyreForceLocal = tire.Simulate(
+            wheelVelocity,
+            normalLoad,
+            driveTorque,
+            brakeTorque,
+            filteredSteer * Mathf.Deg2Rad,
+            Time.fixedDeltaTime,
+            true);
 
         Vector3 tyreForceWorld =
             wheelRight * tyreForceLocal.x +
@@ -225,17 +223,11 @@ public class F12026CarController : MonoBehaviour
     private void ApplyAero(Vector3 velocity)
     {
         float speed = velocity.magnitude;
-
-        if (speed < 1f)
-            return;
+        if (speed < 1f) return;
 
         bool x = activeAeroXMode;
-
-        float downforceRef =
-            x ? xDownforceAt70ms : zDownforceAt70ms;
-
-        float dragRef =
-            x ? xDragAt70ms : zDragAt70ms;
+        float downforceRef = x ? xDownforceAt70ms : zDownforceAt70ms;
+        float dragRef = x ? xDragAt70ms : zDragAt70ms;
 
         float ratio = speed / 70f;
         float downforce = downforceRef * ratio * ratio;
@@ -244,49 +236,50 @@ public class F12026CarController : MonoBehaviour
         Vector3 down = -transform.up * downforce;
         Vector3 dragForce = -velocity.normalized * drag;
 
-        Vector3 frontPoint =
-            transform.TransformPoint(
-                new Vector3(
-                    0f,
-                    0f,
-                    wheelbase *
-                    (1f - aeroFrontDistribution) *
-                    0.5f));
+        Vector3 frontPoint = transform.TransformPoint(
+            new Vector3(
+                0f, 0f,
+                wheelbase * (1f - aeroFrontDistribution) * 0.5f));
 
-        Vector3 rearPoint =
-            transform.TransformPoint(
-                new Vector3(
-                    0f,
-                    0f,
-                    -wheelbase *
-                    aeroFrontDistribution *
-                    0.5f));
+        Vector3 rearPoint = transform.TransformPoint(
+            new Vector3(
+                0f, 0f,
+                -wheelbase * aeroFrontDistribution * 0.5f));
 
         rb.AddForceAtPosition(
-            down * aeroFrontDistribution,
-            frontPoint,
-            ForceMode.Force);
+            down * aeroFrontDistribution, frontPoint, ForceMode.Force);
 
         rb.AddForceAtPosition(
-            down * (1f - aeroFrontDistribution),
-            rearPoint,
-            ForceMode.Force);
+            down * (1f - aeroFrontDistribution), rearPoint, ForceMode.Force);
 
         rb.AddForce(dragForce, ForceMode.Force);
     }
 
-    public void SetXMode(bool enabled) => activeAeroXMode = enabled;\n\n    private void ReadInput()
+    public void SetXMode(bool enabled)
+    {
+        activeAeroXMode = enabled;
+    }
+
+    public void SetMobileInput(float steer, float throttle, float brake)
+    {
+        useLegacyInput = false;
+        steerInput = Mathf.Clamp(steer, -1f, 1f);
+        throttleInput = Mathf.Clamp01(throttle);
+        brakeInput = Mathf.Clamp01(brake);
+    }
+
+    public void EnableLegacyInput()
+    {
+        useLegacyInput = true;
+    }
+
+    private void ReadInput()
     {
         float steer = Input.GetAxisRaw("Horizontal");
         float throttle = Input.GetAxisRaw("Vertical");
 
-        if (Mathf.Abs(steer) > 0.01f)
-            steerInput = Mathf.Clamp(steer, -1f, 1f);
-
-        throttleInput =
-            Mathf.Clamp01(Mathf.Max(0f, throttle));
-
-        brakeInput =
-            Mathf.Clamp01(Mathf.Max(0f, -throttle));
+        steerInput = Mathf.Clamp(steer, -1f, 1f);
+        throttleInput = Mathf.Clamp01(Mathf.Max(0f, throttle));
+        brakeInput = Mathf.Clamp01(Mathf.Max(0f, -throttle));
     }
 }
