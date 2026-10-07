@@ -179,20 +179,20 @@ function applyF1Materials(root){
     if(!o.isMesh)return;
     o.castShadow=true;o.receiveShadow=true;
     const n=(o.name||'').toLowerCase();
+    const src=Array.isArray(o.material)?o.material[0]:o.material;
+    const m=src?src.clone():new THREE.MeshStandardMaterial();
     if(/wheel|tyre|tire/.test(n)){
-      o.material=new THREE.MeshStandardMaterial({color:0x090909,metalness:.05,roughness:.96});
-      productionWheelMeshes.push(o);
-      return;
+      m.color.set(0x090909);m.metalness=.05;m.roughness=.96;
+    }else if(/carbon|floor|diffuser|wing|suspension|halo/.test(n)){
+      m.color.set(0x0a0d11);m.metalness=.35;m.roughness=.62;
+    }else if(/glass|visor|screen/.test(n)){
+      m.color.set(0x06131d);m.metalness=.35;m.roughness=.12;m.transparent=true;m.opacity=.82;
+    }else if(/accent|neon|red|orange|stripe|trim/.test(n)){
+      m.color.set(0xff321f);m.metalness=.45;m.roughness=.22;
+    }else{
+      m.color.set(0x9fa4a7);m.metalness=.8;m.roughness=.2;
     }
-    if(/carbon|floor|diffuser|wing|suspension|halo/.test(n)){
-      o.material=new THREE.MeshStandardMaterial({color:0x0a0d11,metalness:.35,roughness:.62});
-      return;
-    }
-    if(/glass|visor|screen/.test(n)){
-      o.material=new THREE.MeshStandardMaterial({color:0x06131d,metalness:.35,roughness:.12,transparent:true,opacity:.82});
-      return;
-    }
-    o.material=new THREE.MeshStandardMaterial({color:0x9fa4a7,metalness:.8,roughness:.2});
+    o.material=m;
   });
 }
 function normalizeF1Model(root){
@@ -212,7 +212,11 @@ async function loadProductionModel(){
       const gltf=await new Promise((resolve,reject)=>loader.load(url,resolve,undefined,reject));
       productionModel=gltf.scene;productionModel.name='F12026_GLTF_PRODUCTION_MODEL';
       normalizeF1Model(productionModel);applyF1Materials(productionModel);
-      productionModel.traverse(o=>{if(o.isMesh&&/front.*(wheel|tyre|tire)|(wheel|tyre|tire).*front/i.test(o.name))productionFrontWheels.push(o);});
+      productionModel.traverse(o=>{const n=(o.name||'').toLowerCase();if(o.isMesh&&/front.*(wheel|tyre|tire)|(wheel|tyre|tire).*front/.test(n))productionFrontWheels.push(o);});
+      const aeroFront=productionModel.getObjectByName('FrontWing')||productionModel.getObjectByName('front_wing')||productionModel.getObjectByName('Front Wing');
+      const aeroRear=productionModel.getObjectByName('RearWing')||productionModel.getObjectByName('rear_wing')||productionModel.getObjectByName('Rear Wing');
+      if(aeroFront)activeAero.front=aeroFront;
+      if(aeroRear)activeAero.rear=aeroRear;
       car.add(productionModel);
       productionModel.visible=true;
       car.children.filter(o=>o!==productionModel).forEach(o=>o.visible=false);
