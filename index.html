@@ -11,7 +11,7 @@
 <div id="app">
   <div id="game"><div id="loading"><div class="loader">F1</div><b>LOADING RACING SIMULATION</b><small>正在載入 3D 賽車引擎…</small></div></div>
 
-  <div id="standings"><div class="standTitle"><b>F1</b><span>RACE</span></div><div class="standLap">LAP <b id="standLap">1 / 3</b></div><ol><li><b>1</b><span>YOU</span><em>P1</em></li><li><b>2</b><span>AI 01</span><em>+0.487</em></li><li><b>3</b><span>AI 02</span><em>+1.203</em></li><li><b>4</b><span>AI 03</span><em>+1.876</em></li><li><b>5</b><span>AI 04</span><em>+2.421</em></li></ol></div><div id="trackMap"><canvas id="trackMapCanvas" width="150" height="150"></canvas><div class="mapTitle">TRACK MAP</div></div>
+  <div id="standings"><div class="standTitle"><b>F1</b><span>RACE</span></div><div class="standLap">LAP <b id="standLap">1 / 3</b></div><ol><li><b>1</b><span>YOU</span><em>P1</em></li><li><b>2</b><span>AI 01</span><em>+0.487</em></li><li><b>3</b><span>AI 02</span><em>+1.203</em></li><li><b>4</b><span>AI 03</span><em>+1.876</em></li><li><b>5</b><span>AI 04</span><em>+2.421</em></li></ol></div><div id="trackMap"><canvas id="trackMapCanvas" width="160" height="160"></canvas><div class="mapTitle">TRACK MAP</div></div>
 <div id="hud">
     <div class="topbar">
       <div class="brand"><b>F1</b><span>2026 RACING SIMULATION</span></div>
@@ -36,15 +36,25 @@
   <div id="raceFlags"><span id="flagState">GREEN</span><span id="position">P1</span></div>
 <div id="cameraLabel">CHASE CAMERA</div>
 
+  <div id="mfd-hud">
   <div id="ersPanel">
-  <div class="panelTitle">ENERGY STORE</div>
-  <div class="ersValue"><strong id="ersPercent">100</strong><span>%</span></div>
-  <div class="ersBar"><div id="ersFill"></div></div>
-  <button id="overdriveBtn" class="ersButton">OVERTAKE</button>
-  <small>HOLD / PRESS TO DEPLOY</small>
+    <div class="panelTitle">ERS DEPLOYMENT (OVERTAKE)</div>
+    <div class="ersValue"><strong id="ersPercent">100</strong><span>%</span></div>
+    <div class="ersBar-bg"><div id="ersFill" class="ersBar-fill"></div></div>
+    <button id="overdriveBtn" class="ersButton">OVERTAKE (HOLD / SPACE)</button>
+  </div>
+  <div id="pitPanel">
+    <div class="panelTitle">PIT STRATEGY</div>
+    <div class="pitRow"><span>Target Lap</span><strong id="pitLap">12</strong></div>
+    <div class="pitControls">
+      <button class="btn-small" id="pitMinus">−</button>
+      <button class="btn-small" id="pitPlus">+</button>
+      <button class="compound active" data-compound="S">S</button>
+      <button class="compound" data-compound="M">M</button>
+      <button class="compound" data-compound="H">H</button>
+    </div>
+  </div>
 </div>
-<div id="pitPanel">
-  <div class="panelTitle">PIT STRATEGY</div>
   <div class="pitRow"><span>PIT LAP</span><strong id="pitLap">12</strong></div>
   <div class="pitRow"><span>COMPOUND</span><div class="compoundButtons">
     <button class="compound active" data-compound="S">S</button>
