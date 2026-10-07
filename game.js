@@ -94,25 +94,74 @@ class TireModel{
  update(dt,speed,steer,brake,throttle){const slip=Math.min(1,Math.abs(steer)*speed/95+(brake?.14:0));this.temp=THREE.MathUtils.clamp(this.temp+(slip*2.8+(brake?2:0))*dt-(this.temp-72)*.018*dt,45,125);this.wear=Math.max(.35,this.wear-(slip*.00055+Math.max(0,this.temp-105)*.000012)*dt)}
 }
 const car=new THREE.Group();car.name='F12026_Vehicle';
-const powerUnit=new PowerUnit(),tireModel=new TireModel(),frontWing=new THREE.Group(),rearWing=new THREE.Group(),wheelMeshes=[];
-function box(name,s,p,m){const o=new THREE.Mesh(new THREE.BoxGeometry(...s),m);o.name=name;o.position.set(...p);car.add(o);return o}
-function sphere(name,s,p,m){const o=new THREE.Mesh(new THREE.SphereGeometry(1,28,14),m);o.name=name;o.scale.set(...s);o.position.set(...p);car.add(o);return o}
-function beam(name,a,b,r,m){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length,10),m);o.name=name;o.position.copy(A.add(B).multiplyScalar(.5));o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());car.add(o);return o}
-function wing(parent,name,w,y,z,d,m){const o=new THREE.Mesh(new THREE.BoxGeometry(w,.065,d),m);o.name=name;o.position.set(0,y,z);parent.add(o)}
-/* Chassis / sidepods / floor */
-box('Chassis',[.92,.28,2.48],[0,.40,.02],mats.body);sphere('FrontMonocoque',[.40,.16,.80],[0,.44,.90],mats.body);sphere('LongNose',[.215,.105,.82],[0,.42,1.65],mats.body);box('NoseTip',[.15,.07,.32],[0,.36,2.34],mats.carbon);box('Floor',[1.75,.10,3.78],[0,.18,-.02],mats.carbon);
-sphere('SidepodL',[.30,.18,.76],[-.56,.48,.02],mats.body);sphere('SidepodR',[.30,.18,.76],[.56,.48,.02],mats.body);box('InletL',[.12,.15,.50],[-.79,.53,.36],mats.carbon);box('InletR',[.12,.15,.50],[.79,.53,.36],mats.carbon);box('FloorEdgeL',[.07,.06,1.42],[-.70,.27,-.10],mats.carbon);box('FloorEdgeR',[.07,.06,1.42],[.70,.27,-.10],mats.carbon);
-sphere('EngineCover',[.35,.20,.72],[0,.61,-.64],mats.body);sphere('RearBody',[.46,.17,.60],[0,.49,-1.17],mats.body);box('Diffuser',[1.28,.12,.56],[0,.27,-1.48],mats.carbon);box('RearSpine',[.18,.18,.72],[0,.73,-.87],mats.body);
-/* Cockpit / driver / dashboard / halo */
-box('CockpitOpening',[.47,.09,.78],[0,.62,.27],mats.carbon);sphere('DriverHead',[.13,.22,.13],[0,.76,.02],mats.accent);box('DigitalDashboard',[.34,.08,.08],[0,.73,.52],mats.glass);box('SteeringWheel',[.22,.035,.16],[0,.69,.54],mats.carbon);
-beam('HaloCenter',[0,.64,.43],[0,.94,.08],.045,mats.carbon);beam('HaloL',[0,.94,.08],[-.30,.91,.17],.045,mats.carbon);beam('HaloR',[0,.94,.08],[.30,.91,.17],.045,mats.carbon);beam('HaloTop',[-.30,.91,.17],[.30,.91,.17],.045,mats.carbon);box('CameraPod',[.07,.07,.11],[0,1,.84],mats.carbon);
-/* Active front wing: two-element visual assembly */
-frontWing.position.set(0,.30,2.28);car.add(frontWing);wing(frontWing,'FrontFlapA',1.84,0,0,.34,mats.carbon);wing(frontWing,'FrontFlapB',1.62,.08,.03,.27,mats.body);box('FrontEndplateL',[.07,.27,.42],[-.94,.38,2.28],mats.carbon);box('FrontEndplateR',[.07,.27,.42],[.94,.38,2.28],mats.carbon);
-/* Active rear wing: three-element assembly */
-rearWing.position.set(0,1.02,-1.60);car.add(rearWing);wing(rearWing,'RearFlapA',1.64,0,0,.25,mats.carbon);wing(rearWing,'RearFlapB',1.50,.17,.02,.20,mats.body);wing(rearWing,'RearFlapC',1.54,-.16,.03,.17,mats.carbon);box('RearEndplateL',[.07,.70,.12],[-.81,0,0],mats.carbon);box('RearEndplateR',[.07,.70,.12],[.81,0,0],mats.carbon);beam('RearSupportL',[-.20,.56,-1.43],[-.20,1.02,-1.60],.035,mats.carbon);beam('RearSupportR',[.20,.56,-1.43],[.20,1.02,-1.60],.035,mats.carbon);
-/* Four independent wheel assemblies + suspension visuals */
-function buildWheel(side,z,front){const x=side*.84,g=new THREE.Group();g.name=(front?'Front':'Rear')+(side<0?'Left':'Right')+'Wheel';g.position.set(x,.36,z);car.add(g);const t=new THREE.Mesh(new THREE.CylinderGeometry(.37,.37,.19,28),mats.tyre);t.rotation.z=Math.PI/2;g.add(t);const hub=new THREE.Mesh(new THREE.CylinderGeometry(.13,.13,.205,18),mats.trim);hub.rotation.z=Math.PI/2;g.add(hub);beam(g.name+'Upper',[side*.37,.50,z+(front?-.15:.15)],[x,.45,z],.026,mats.carbon);beam(g.name+'Lower',[side*.32,.30,z+(front?.15:-.15)],[x,.34,z],.026,mats.carbon);wheelMeshes.push(g)}
-buildWheel(-1,1.18,true);buildWheel(1,1.18,true);buildWheel(-1,-1.18,false);buildWheel(1,-1.18,false);
+const powerUnit=new PowerUnit(),tireModel=new TireModel(),frontWing=new THREE.Group(),rearWing=new THREE.Group(),wheelMeshes=[],frontWheelMeshes=[];
+function box(name,s,p,m,parent=car){const o=new THREE.Mesh(new THREE.BoxGeometry(...s),m);o.name=name;o.position.set(...p);parent.add(o);return o}
+function sphere(name,s,p,m,parent=car){const o=new THREE.Mesh(new THREE.SphereGeometry(1,32,16),m);o.name=name;o.scale.set(...s);o.position.set(...p);parent.add(o);return o}
+function beam(name,a,b,r,m,parent=car){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),o=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length,12),m);o.name=name;o.position.copy(A.add(B).multiplyScalar(.5));o.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());parent.add(o);return o}
+function wing(parent,name,w,y,z,d,m,rot=0){const o=new THREE.Mesh(new THREE.BoxGeometry(w,.075,d),m);o.name=name;o.position.set(0,y,z);o.rotation.x=rot;parent.add(o);return o}
+
+/* Low, wide, long modern ground-effect F1 silhouette. */
+box('Floor',[2.05,.10,5.10],[0,.18,-.02],mats.carbon);
+box('Chassis',[1.08,.27,2.35],[0,.48,.05],mats.body);
+sphere('Nose',[.34,.16,1.62],[0,.47,1.42],mats.body);
+box('NoseTip',[.20,.10,.48],[0,.40,2.34],mats.carbon);
+sphere('FrontShoulder',[.60,.14,.76],[0,.50,.76],mats.body);
+sphere('SidepodL',[.46,.25,.88],[-.72,.49,.00],mats.body);
+sphere('SidepodR',[.46,.25,.88],[.72,.49,.00],mats.body);
+box('SidepodInletL',[.24,.20,.48],[-.99,.58,.42],mats.carbon);
+box('SidepodInletR',[.24,.20,.48],[.99,.58,.42],mats.carbon);
+box('FloorEdgeL',[.10,.08,2.05],[-1.00,.29,-.10],mats.carbon);
+box('FloorEdgeR',[.10,.08,2.05],[1.00,.29,-.10],mats.carbon);
+sphere('EngineCover',[.43,.34,.92],[0,.68,-.72],mats.body);
+sphere('RearBody',[.56,.20,.76],[0,.53,-1.48],mats.body);
+box('RearSpine',[.18,.25,1.05],[0,.78,-1.16],mats.body);
+box('Diffuser',[1.58,.18,.66],[0,.29,-2.02],mats.carbon);
+
+/* cockpit / driver / halo */
+box('CockpitOpening',[.55,.10,.98],[0,.70,.15],mats.carbon);
+sphere('DriverHead',[.15,.24,.15],[0,.84,.00],mats.accent);
+box('SeatBack',[.30,.22,.44],[0,.66,-.15],mats.carbon);
+box('SteeringWheel',[.27,.045,.18],[0,.72,.52],mats.glass);
+beam('HaloCenter',[0,.72,.42],[0,1.08,.05],.052,mats.carbon);
+beam('HaloL',[0,1.08,.05],[-.34,1.04,.15],.052,mats.carbon);
+beam('HaloR',[0,1.08,.05],[.34,1.04,.15],.052,mats.carbon);
+beam('HaloTop',[-.34,1.04,.15],[.34,1.04,.15],.052,mats.carbon);
+box('CameraPod',[.09,.09,.14],[0,1.14,.77],mats.carbon);
+
+/* front wing: wide multi-element ground-effect shape */
+frontWing.position.set(0,.30,2.63);car.add(frontWing);
+wing(frontWing,'FrontMain',2.35,-.02,0,.30,mats.carbon,.08);
+wing(frontWing,'FrontFlap1',2.16,.08,.04,.25,mats.body,-.05);
+wing(frontWing,'FrontFlap2',1.92,.15,.06,.18,mats.carbon,-.16);
+box('FrontEndplateL',[.08,.42,.52],[-1.17,.35,0],mats.carbon,frontWing);
+box('FrontEndplateR',[.08,.42,.52],[1.17,.35,0],mats.carbon,frontWing);
+
+/* rear wing: tall endplates + dual flap */
+rearWing.position.set(0,1.18,-2.00);car.add(rearWing);
+wing(rearWing,'RearMain',1.92,0,0,.28,mats.carbon,.02);
+wing(rearWing,'RearFlap',1.76,.28,.03,.24,mats.body,-.12);
+box('RearEndplateL',[.09,.82,.16],[-.96,.02,0],mats.carbon,rearWing);
+box('RearEndplateR',[.09,.82,.16],[.96,.02,0],mats.carbon,rearWing);
+beam('RearSupportL',[-.23,.62,-1.73],[-.23,1.18,-2.00],.042,mats.carbon);
+beam('RearSupportR',[.23,.62,-1.73],[.23,1.18,-2.00],.042,mats.carbon);
+
+/* exposed suspension + four large F1 slicks */
+function buildWheel(side,z,front){
+  const x=side*1.08,g=new THREE.Group();
+  g.name=(front?'Front':'Rear')+(side<0?'Left':'Right')+'Wheel';
+  g.position.set(x,.48,z);g.userData.front=front;car.add(g);
+  const tire=new THREE.Mesh(new THREE.CylinderGeometry(.43,.43,.25,36),mats.tyre);
+  tire.rotation.z=Math.PI/2;g.add(tire);
+  const sidewall=new THREE.Mesh(new THREE.TorusGeometry(.36,.025,8,32),mats.trim);
+  sidewall.rotation.y=Math.PI/2;g.add(sidewall);
+  const hub=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,.27,20),mats.trim);
+  hub.rotation.z=Math.PI/2;g.add(hub);
+  g.userData.tire=tire;
+  beam('UpperWishbone',[side*.42,.63,z+(front?-.22:.18)],[x,.60,z],.028,mats.carbon);
+  beam('LowerWishbone',[side*.38,.34,z+(front?.22:-.18)],[x,.39,z],.030,mats.carbon);
+  wheelMeshes.push(g);if(front)frontWheelMeshes.push(g);
+}
+buildWheel(-1,1.55,true);buildWheel(1,1.55,true);buildWheel(-1,-1.48,false);buildWheel(1,-1.48,false);
 scene.add(car);
 const activeAero=new ActiveAero(frontWing,rearWing);
 /* Race + input + simplified AI */
@@ -236,7 +285,8 @@ function animate(){
   const previous=progress;progress=(progress+v*dt/L)%1;
   if(previous>.8&&progress<.2){laps++;if(laps>=3){finish=true;run=false;count.textContent='FINISH'}}
   powerUnit.update(dt,throttle,v);tireModel.update(dt,v,steerInput,brake,throttle);activeAero.update(dt);
-  wheelMeshes.forEach(w=>w.rotation.y+=v*dt*2.2);
+  wheelMeshes.forEach(w=>{w.userData.tire.rotation.x+=v*dt*2.2;});
+   frontWheelMeshes.forEach(w=>w.rotation.y=THREE.MathUtils.lerp(w.rotation.y,steerInput*.42,1-Math.exp(-dt*12)));
   place();aiCars.forEach(a=>placeAI(a,dt));
   speedEl.textContent=Math.round(v*3.6)+' KM/H';
   gearEl.textContent=powerUnit.gear;
