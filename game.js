@@ -230,6 +230,9 @@ overdriveBtn.onpointerup=()=>{if(!overtakeToggle)setOvertake(false)};
 overdriveBtn.onpointercancel=()=>{if(!overtakeToggle)setOvertake(false)};
 compoundButtons.forEach(b=>b.onclick=()=>{selectedCompound=b.dataset.compound;compoundButtons.forEach(x=>x.classList.remove('active'));b.classList.add('active');tireModel.compound=selectedCompound});
 if(pitButton)pitButton.onclick=()=>{pitLap=Math.max(laps+1,pitLap);pitLapEl.textContent=pitLap};
+const pitMinus=document.querySelector('#pitMinus'),pitPlus=document.querySelector('#pitPlus');
+if(pitMinus)pitMinus.onclick=()=>{pitLap=Math.max(1,pitLap-1);if(pitLapEl)pitLapEl.textContent=pitLap};
+if(pitPlus)pitPlus.onclick=()=>{pitLap=Math.min(99,pitLap+1);if(pitLapEl)pitLapEl.textContent=pitLap};
 
 const aiCars=[];
 function makeAI(i){
