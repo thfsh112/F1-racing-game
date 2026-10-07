@@ -1,5 +1,4 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js';
-import {GLTFLoader} from 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js';
 
 const root=document.querySelector('#game');
 const loadingEl=document.querySelector('#loading');
@@ -166,69 +165,14 @@ buildWheel(-1,1.55,true);buildWheel(1,1.55,true);buildWheel(-1,-1.48,false);buil
 scene.add(car);
 const activeAero=new ActiveAero(frontWing,rearWing);
 
-/* ===== Production GLTF/GLB F1 2026 model loader =====
-   Local asset has priority. A remote concept is only a temporary fallback;
-   replace ./assets/f1-2026.glb with a properly licensed GLB for release. */
-const MODEL_URLS=['./assets/f1-2026.glb','https://raw.githubusercontent.com/GlyphCoder/f1-forge/main/public/models/car.glb'];
+/* Production GLB loader disabled for startup stability.
+   The procedural F1 2026 vehicle is the guaranteed fallback.
+   A GLB can be integrated later without blocking game startup. */
 let productionModel=null;
 let productionWheelMeshes=[];
 let productionFrontWheels=[];
 let modelLoaded=false;
-function applyF1Materials(root){
-  root.traverse(o=>{
-    if(!o.isMesh)return;
-    o.castShadow=true;o.receiveShadow=true;
-    const n=(o.name||'').toLowerCase();
-    const src=Array.isArray(o.material)?o.material[0]:o.material;
-    const m=src?src.clone():new THREE.MeshStandardMaterial();
-    if(/wheel|tyre|tire/.test(n)){
-      m.color.set(0x090909);m.metalness=.05;m.roughness=.96;
-    }else if(/carbon|floor|diffuser|wing|suspension|halo/.test(n)){
-      m.color.set(0x0a0d11);m.metalness=.35;m.roughness=.62;
-    }else if(/glass|visor|screen/.test(n)){
-      m.color.set(0x06131d);m.metalness=.35;m.roughness=.12;m.transparent=true;m.opacity=.82;
-    }else if(/accent|neon|red|orange|stripe|trim/.test(n)){
-      m.color.set(0xff321f);m.metalness=.45;m.roughness=.22;
-    }else{
-      m.color.set(0x9fa4a7);m.metalness=.8;m.roughness=.2;
-    }
-    o.material=m;
-  });
-}
-function normalizeF1Model(root){
-  root.updateMatrixWorld(true);
-  let box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3());
-  if(size.x>size.z*1.25){root.rotation.y=Math.PI/2;root.updateMatrixWorld(true);box=new THREE.Box3().setFromObject(root);size=box.getSize(new THREE.Vector3());}
-  const targetLength=5.35,scale=targetLength/Math.max(size.z,.001);root.scale.setScalar(scale);root.updateMatrixWorld(true);
-  box=new THREE.Box3().setFromObject(root);
-  const center=box.getCenter(new THREE.Vector3());
-  root.position.x-=center.x;root.position.z-=center.z;root.position.y-=box.min.y-.18;
-  root.updateMatrixWorld(true);
-}
-async function loadProductionModel(){
-  const loader=new GLTFLoader();
-  for(const url of MODEL_URLS){
-    try{
-      const gltf=await new Promise((resolve,reject)=>loader.load(url,resolve,undefined,reject));
-      productionModel=gltf.scene;productionModel.name='F12026_GLTF_PRODUCTION_MODEL';
-      normalizeF1Model(productionModel);applyF1Materials(productionModel);
-      productionModel.traverse(o=>{const n=(o.name||'').toLowerCase();if(o.isMesh&&/front.*(wheel|tyre|tire)|(wheel|tyre|tire).*front/.test(n))productionFrontWheels.push(o);});
-      const aeroFront=productionModel.getObjectByName('FrontWing')||productionModel.getObjectByName('front_wing')||productionModel.getObjectByName('Front Wing');
-      const aeroRear=productionModel.getObjectByName('RearWing')||productionModel.getObjectByName('rear_wing')||productionModel.getObjectByName('Rear Wing');
-      if(aeroFront)activeAero.front=aeroFront;
-      if(aeroRear)activeAero.rear=aeroRear;
-      car.add(productionModel);
-      productionModel.visible=true;
-      car.children.filter(o=>o!==productionModel).forEach(o=>o.visible=false);
-      modelLoaded=true;
-      if(loadingEl){loadingEl.classList.add('hidden');setTimeout(()=>loadingEl.remove(),350);}
-      console.info('F1 2026 GLB loaded:',url);
-      return;
-    }catch(err){console.warn('GLB load failed:',url,err);}
-  }
-  if(loadingEl){loadingEl.classList.add('hidden');setTimeout(()=>loadingEl.remove(),350);}
-}
-loadProductionModel();
+
 /* Race + input + simplified AI */
 
 // ===== F1 25-style unified controls / mini-map / race systems =====
