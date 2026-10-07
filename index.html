@@ -55,14 +55,6 @@
     </div>
   </div>
 </div>
-  <div class="pitRow"><span>PIT LAP</span><strong id="pitLap">12</strong></div>
-  <div class="pitRow"><span>COMPOUND</span><div class="compoundButtons">
-    <button class="compound active" data-compound="S">S</button>
-    <button class="compound" data-compound="M">M</button>
-    <button class="compound" data-compound="H">H</button>
-  </div></div>
-  <button id="pitButton" class="pitButton">PIT STRATEGY</button>
-</div>
 <div id="buttons">
     <button id="cameraBtn">CAM · CHASE</button>
     <button id="aeroBtn">AERO · Z</button>
@@ -81,9 +73,30 @@
   </div>
 
   <div id="portraitHint">請將手機橫向使用</div>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
-  <script src="./game.js"></script>
-<script>window.addEventListener("error",function(e){var x=document.getElementById("loading");if(x){x.classList.add("error");x.innerHTML="<div class=\"loader\">!</div><b>GAME LOAD ERROR</b><small>"+(e.message||"3D 引擎載入失敗")+"<br>請重新整理頁面</small>"}});window.addEventListener("unhandledrejection",function(e){var x=document.getElementById("loading");if(x){x.classList.add("error");x.innerHTML="<div class=\"loader\">!</div><b>GAME LOAD ERROR</b><small>3D 模組載入失敗<br>請重新整理頁面</small>"}});</script>
+  <script>
+    window.addEventListener("error",function(e){
+      var x=document.getElementById("loading");
+      if(x && !x.classList.contains("hidden")){
+        x.classList.add("error");
+        x.innerHTML="<div class=\"loader\">!</div><b>GAME LOAD ERROR</b><small>"+(e.message||"3D 引擎載入失敗")+"<br>請重新整理頁面</small>";
+      }
+    });
+    window.addEventListener("unhandledrejection",function(e){
+      var x=document.getElementById("loading");
+      if(x && !x.classList.contains("hidden")){
+        x.classList.add("error");
+        x.innerHTML="<div class=\"loader\">!</div><b>GAME LOAD ERROR</b><small>"+(e.reason?.message||"3D 引擎載入失敗")+"<br>請重新整理頁面</small>";
+      }
+    });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js" onerror="this.onerror=null;this.src='https://unpkg.com/three@0.160.0/build/three.min.js';"></script>
+  <script>
+    if(!window.THREE){
+      document.getElementById("loading").classList.add("error");
+      document.getElementById("loading").innerHTML='<div class="loader">!</div><b>3D ENGINE LOAD ERROR</b><small>Three.js 無法載入<br>請檢查網路後重新整理</small>';
+    }
+  </script>
+  <script src="./game-mobile.js?v=20261007"></script>
 </div>
 </body>
 </html>
